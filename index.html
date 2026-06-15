@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recite — 单词背诵游戏</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f1a;
+      --surface: #1a1a2e;
+      --card: #16213e;
+      --accent: #e94560;
+      --accent2: #0f3460;
+      --blue: #533483;
+      --text: #e0e0e0;
+      --muted: #888;
+      --green: #4ade80;
+      --red: #f87171;
+      --yellow: #fbbf24;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      background: var(--surface);
+      border-bottom: 1px solid #2a2a40;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 {
+      font-size: 1.5rem;
+      background: linear-gradient(135deg, #e94560, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    #score-bar {
+      display: flex;
+      gap: 20px;
+      font-size: 0.9rem;
+    }
+    .score-chip {
+      background: var(--card);
+      border: 1px solid #2a2a40;
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-weight: 600;
+    }
+    .score-chip span { color: var(--accent); }
+
+    /* ── Main ── */
+    main {
+      width: 100%;
+      max-width: 680px;
+      padding: 32px 20px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ── Progress bar ── */
+    #progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    #progress-bar {
+      flex: 1;
+      height: 6px;
+      background: #2a2a40;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    #progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #e94560, #a855f7);
+      border-radius: 3px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    /* ── Card ── */
+    #card {
+      background: var(--card);
+      border: 1px solid #2a2a40;
+      border-radius: 20px;
+      padding: 40px 36px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+      position: relative;
+      overflow: hidden;
+      min-height: 260px;
+      justify-content: center;
+    }
+    #card::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 180px; height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(233,69,96,0.12), transparent 70%);
+      pointer-events: none;
+    }
+
+    #question-type {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    #question-text {
+      font-size: 1.55rem;
+      font-weight: 700;
+      line-height: 1.45;
+      color: #fff;
+    }
+    #phonetic {
+      font-size: 0.95rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+    #example {
+      font-size: 0.9rem;
+      color: #aaa;
+      border-left: 3px solid var(--accent2);
+      padding-left: 12px;
+      line-height: 1.6;
+    }
+
+    /* ── Answer area ── */
+    #answer-area {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Multiple choice */
+    #choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .choice-btn {
+      background: var(--surface);
+      border: 1.5px solid #2a2a40;
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: var(--text);
+      font-size: 0.95rem;
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.15s, background 0.15s, transform 0.1s;
+      font-weight: 500;
+    }
+    .choice-btn:hover:not(:disabled) {
+      border-color: var(--accent);
+      background: #1e1e35;
+      transform: translateY(-1px);
+    }
+    .choice-btn.correct { border-color: var(--green); background: rgba(74,222,128,0.1); color: var(--green); }
+    .choice-btn.wrong   { border-color: var(--red);   background: rgba(248,113,113,0.1); color: var(--red); }
+    .choice-btn:disabled { cursor: not-allowed; opacity: 0.8; }
+
+    /* Typing */
+    #type-row {
+      display: flex;
+      gap: 10px;
+    }
+    #type-input {
+      flex: 1;
+      background: var(--surface);
+      border: 1.5px solid #2a2a40;
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    #type-input:focus { border-color: var(--accent); }
+    #type-input.correct { border-color: var(--green); }
+    #type-input.wrong   { border-color: var(--red); }
+    #submit-btn {
+      background: var(--accent);
+      border: none;
+      border-radius: 12px;
+      padding: 14px 22px;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    #submit-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    /* Feedback */
+    #feedback {
+      font-size: 0.95rem;
+      min-height: 22px;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+    #feedback.correct { color: var(--green); }
+    #feedback.wrong   { color: var(--red); }
+
+    /* Next button */
+    #next-btn {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #e94560, #a855f7);
+      border: none;
+      border-radius: 12px;
+      padding: 13px 30px;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: none;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    #next-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    #next-btn.visible { display: inline-block; }
+
+    /* ── Mode selector ── */
+    #mode-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .mode-btn {
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 1.5px solid #2a2a40;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-weight: 600;
+    }
+    .mode-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(233,69,96,0.1); }
+
+    /* ── Result screen ── */
+    #result-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      text-align: center;
+      padding: 20px 0;
+    }
+    #result-screen.visible { display: flex; }
+    #result-emoji { font-size: 5rem; }
+    #result-title { font-size: 2rem; font-weight: 800; color: #fff; }
+    #result-stats { font-size: 1rem; color: var(--muted); line-height: 1.8; }
+    #result-stats strong { color: var(--text); }
+    #restart-btn {
+      background: linear-gradient(135deg, #e94560, #a855f7);
+      border: none;
+      border-radius: 14px;
+      padding: 15px 40px;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    #restart-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--surface);
+      border: 1px solid #2a2a40;
+      border-radius: 12px;
+      padding: 10px 22px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      z-index: 999;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Start screen ── */
+    #start-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      text-align: center;
+    }
+    #start-screen h2 { font-size: 2rem; font-weight: 800; color: #fff; }
+    #start-screen p  { color: var(--muted); max-width: 400px; line-height: 1.7; }
+    #start-btn {
+      background: linear-gradient(135deg, #e94560, #a855f7);
+      border: none;
+      border-radius: 14px;
+      padding: 15px 48px;
+      color: #fff;
+      font-size: 1.15rem;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: opacity 0.15s, transform 0.1s;
+      box-shadow: 0 4px 24px rgba(233,69,96,0.4);
+    }
+    #start-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+    .tag { display: inline-block; background: var(--blue); color: #c4b5fd; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; }
+
+    @media (max-width: 480px) {
+      #choices { grid-template-columns: 1fr; }
+      #card { padding: 28px 20px; }
+      #question-text { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>✦ RECITE</h1>
+  <div id="score-bar">
+    <div class="score-chip">得分 <span id="hdr-score">0</span></div>
+    <div class="score-chip">连击 <span id="hdr-streak">0</span>🔥</div>
+  </div>
+</header>
+
+<main>
+  <!-- Start screen -->
+  <div id="start-screen">
+    <h2>欢迎来到 Recite</h2>
+    <p>通过选择题与拼写练习，快速背诵高频英语词汇。<br>答对得分，连续答对获得连击加成！</p>
+    <div id="mode-row">
+      <button class="mode-btn active" data-mode="mixed">混合模式</button>
+      <button class="mode-btn" data-mode="choice">仅选择题</button>
+      <button class="mode-btn" data-mode="type">仅拼写题</button>
+    </div>
+    <button id="start-btn">开始游戏 →</button>
+  </div>
+
+  <!-- Game screen -->
+  <div id="game-screen" style="display:none; flex-direction:column; gap:24px;">
+    <div id="progress-wrap">
+      <span id="progress-text">0 / 0</span>
+      <div id="progress-bar"><div id="progress-fill"></div></div>
+      <span id="progress-pct">0%</span>
+    </div>
+
+    <div id="card">
+      <div id="question-type">选择题</div>
+      <div id="question-text">Loading…</div>
+      <div id="phonetic"></div>
+      <div id="example"></div>
+    </div>
+
+    <div id="answer-area">
+      <div id="choices"></div>
+      <div id="type-row" style="display:none;">
+        <input id="type-input" type="text" placeholder="输入英文单词…" autocomplete="off" spellcheck="false" />
+        <button id="submit-btn">确认</button>
+      </div>
+      <div id="feedback"></div>
+    </div>
+
+    <button id="next-btn">下一题 →</button>
+  </div>
+
+  <!-- Result screen -->
+  <div id="result-screen">
+    <div id="result-emoji">🎉</div>
+    <div id="result-title">本轮结束！</div>
+    <div id="result-stats"></div>
+    <button id="restart-btn">再来一轮 ↺</button>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+/* ──────────────────────────────────────────────
+   词库  (可随意扩充)
+────────────────────────────────────────────── */
+const WORDS = [
+  { word: "ephemeral",  phonetic: "/ɪˈfem.ər.əl/",  pos: "adj", zh: "短暂的",   example: "Fame is ephemeral; true friendship lasts forever." },
+  { word: "serendipity",phonetic: "/ˌser.ənˈdɪp.ɪ.ti/",pos:"n", zh: "意外收获", example: "Finding that coin was pure serendipity." },
+  { word: "eloquent",   phonetic: "/ˈel.ə.kwənt/",   pos: "adj", zh: "雄辩的",   example: "She gave an eloquent speech." },
+  { word: "meticulous", phonetic: "/məˈtɪk.jʊ.ləs/", pos: "adj", zh: "一丝不苟的",example: "He is meticulous about details." },
+  { word: "resilient",  phonetic: "/rɪˈzɪl.i.ənt/",  pos: "adj", zh: "有弹性的；坚韧的", example: "Children are often remarkably resilient." },
+  { word: "ambiguous",  phonetic: "/æmˈbɪɡ.ju.əs/",  pos: "adj", zh: "含糊的",   example: "The law is ambiguous on this point." },
+  { word: "benevolent", phonetic: "/bəˈnev.ə.lənt/", pos: "adj", zh: "仁慈的",   example: "A benevolent ruler is loved by all." },
+  { word: "scrutinize", phonetic: "/ˈskruː.tɪ.naɪz/",pos: "v",   zh: "仔细检查", example: "She scrutinized every clause in the contract." },
+  { word: "paradox",    phonetic: "/ˈpær.ə.dɒks/",   pos: "n",   zh: "矛盾；悖论", example: "It is a paradox that war destroys peace." },
+  { word: "lucid",      phonetic: "/ˈluː.sɪd/",       pos: "adj", zh: "清晰的",   example: "His lucid explanation impressed everyone." },
+  { word: "tenacious",  phonetic: "/təˈneɪ.ʃəs/",     pos: "adj", zh: "坚持不懈的", example: "She is a tenacious negotiator." },
+  { word: "obsolete",   phonetic: "/ˈɒb.sə.liːt/",   pos: "adj", zh: "废弃的",   example: "This technology has become obsolete." },
+  { word: "vindicate",  phonetic: "/ˈvɪn.dɪ.keɪt/",  pos: "v",   zh: "证明…正当", example: "The verdict vindicated her completely." },
+  { word: "pragmatic",  phonetic: "/præɡˈmæt.ɪk/",   pos: "adj", zh: "务实的",   example: "We need a pragmatic approach to the problem." },
+  { word: "ubiquitous", phonetic: "/juːˈbɪk.wɪ.təs/",pos: "adj", zh: "无处不在的", example: "Smartphones are ubiquitous today." },
+  { word: "alleviate",  phonetic: "/əˈliː.vi.eɪt/",  pos: "v",   zh: "减轻",     example: "Medicine can alleviate the pain." },
+  { word: "convoluted", phonetic: "/ˈkɒn.və.luː.tɪd/",pos:"adj", zh: "错综复杂的", example: "The plot was convoluted and hard to follow." },
+  { word: "diligent",   phonetic: "/ˈdɪl.ɪ.dʒənt/",  pos: "adj", zh: "勤奋的",   example: "A diligent student always succeeds." },
+  { word: "exacerbate", phonetic: "/ɪɡˈzæs.ə.beɪt/", pos: "v",   zh: "使恶化",   example: "Stress can exacerbate health problems." },
+  { word: "eloquence",  phonetic: "/ˈel.ə.kwəns/",    pos: "n",   zh: "口才",     example: "His eloquence won over the audience." },
+  { word: "inevitable", phonetic: "/ɪnˈev.ɪ.tə.bəl/",pos: "adj", zh: "不可避免的", example: "Change is inevitable." },
+  { word: "profound",   phonetic: "/prəˈfaʊnd/",      pos: "adj", zh: "深刻的",   example: "The book had a profound effect on me." },
+  { word: "skeptical",  phonetic: "/ˈskep.tɪ.kəl/",  pos: "adj", zh: "持怀疑态度的", example: "I am skeptical of his claims." },
+  { word: "exemplary",  phonetic: "/ɪɡˈzem.plər.i/", pos: "adj", zh: "模范的",   example: "Her conduct was exemplary." },
+  { word: "deteriorate",phonetic: "/dɪˈtɪər.i.ə.reɪt/",pos:"v", zh: "恶化",     example: "His health began to deteriorate rapidly." },
+  { word: "spontaneous",phonetic: "/spɒnˈteɪ.ni.əs/",pos: "adj", zh: "自发的",   example: "A spontaneous burst of applause filled the hall." },
+  { word: "aesthetic",  phonetic: "/iːsˈθet.ɪk/",    pos: "adj", zh: "审美的",   example: "The design has great aesthetic appeal." },
+  { word: "acrimonious",phonetic: "/ˌæk.rɪˈməʊ.ni.əs/",pos:"adj",zh:"尖刻的",  example: "Their divorce was acrimonious." },
+  { word: "benign",     phonetic: "/bɪˈnaɪn/",        pos: "adj", zh: "良性的；温和的", example: "The tumor turned out to be benign." },
+  { word: "clandestine",phonetic: "/klænˈdes.tɪn/",   pos: "adj", zh: "秘密的",   example: "They held clandestine meetings in the cellar." },
+];
+
+/* ──────────────────────────────────────────────
+   State
+────────────────────────────────────────────── */
+let mode = "mixed";
+let queue = [];
+let idx = 0;
+let score = 0;
+let streak = 0;
+let correct = 0;
+let answered = false;
+let currentWord = null;
+
+/* ──────────────────────────────────────────────
+   DOM refs
+────────────────────────────────────────────── */
+const $  = id => document.getElementById(id);
+const startScreen  = $("start-screen");
+const gameScreen   = $("game-screen");
+const resultScreen = $("result-screen");
+
+/* ──────────────────────────────────────────────
+   Utilities
+────────────────────────────────────────────── */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function showToast(msg) {
+  const el = $("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 1800);
+}
+
+function updateHeader() {
+  $("hdr-score").textContent = score;
+  $("hdr-streak").textContent = streak;
+}
+
+/* ──────────────────────────────────────────────
+   Game logic
+────────────────────────────────────────────── */
+function startGame() {
+  queue = shuffle(WORDS);
+  idx = 0; score = 0; streak = 0; correct = 0;
+  updateHeader();
+  startScreen.style.display = "none";
+  resultScreen.classList.remove("visible");
+  gameScreen.style.display = "flex";
+  loadQuestion();
+}
+
+function loadQuestion() {
+  if (idx >= queue.length) { showResult(); return; }
+
+  answered = false;
+  currentWord = queue[idx];
+  const total = queue.length;
+  const pct = Math.round(idx / total * 100);
+
+  $("progress-text").textContent = `${idx} / ${total}`;
+  $("progress-fill").style.width = pct + "%";
+  $("progress-pct").textContent = pct + "%";
+  $("feedback").textContent = "";
+  $("feedback").className = "";
+  $("next-btn").classList.remove("visible");
+
+  const isType = mode === "type" || (mode === "mixed" && Math.random() < 0.35);
+
+  if (isType) {
+    renderTyping(currentWord);
+  } else {
+    renderChoice(currentWord);
+  }
+}
+
+function renderChoice(w) {
+  $("question-type").textContent = "选择题 — 选出对应的中文释义";
+  $("question-text").textContent = w.word;
+  $("phonetic").textContent = w.phonetic;
+  $("example").textContent = "📖 " + w.example;
+
+  const others = shuffle(WORDS.filter(x => x.word !== w.word)).slice(0, 3);
+  const options = shuffle([w, ...others]);
+
+  $("choices").style.display = "grid";
+  $("type-row").style.display = "none";
+  $("choices").innerHTML = "";
+
+  options.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.textContent = `${opt.pos}.  ${opt.zh}`;
+    btn.dataset.word = opt.word;
+    btn.addEventListener("click", () => handleChoice(btn, opt.word === w.word));
+    $("choices").appendChild(btn);
+  });
+}
+
+function renderTyping(w) {
+  $("question-type").textContent = "拼写题 — 根据释义拼写英文单词";
+  $("question-text").textContent = `${w.pos}.  ${w.zh}`;
+  $("phonetic").textContent = w.phonetic;
+  $("example").textContent = "📖 " + w.example;
+
+  $("choices").style.display = "none";
+  $("type-row").style.display = "flex";
+  $("type-input").value = "";
+  $("type-input").className = "";
+  $("type-input").focus();
+}
+
+function handleChoice(btn, isCorrect) {
+  if (answered) return;
+  answered = true;
+
+  document.querySelectorAll(".choice-btn").forEach(b => {
+    b.disabled = true;
+    if (b.dataset.word === currentWord.word) b.classList.add("correct");
+  });
+
+  if (isCorrect) {
+    btn.classList.add("correct");
+    onCorrect();
+  } else {
+    btn.classList.add("wrong");
+    onWrong();
+  }
+  $("next-btn").classList.add("visible");
+}
+
+function handleType() {
+  if (answered) return;
+  const val = $("type-input").value.trim().toLowerCase();
+  if (!val) return;
+  answered = true;
+  $("type-input").disabled = true;
+
+  if (val === currentWord.word.toLowerCase()) {
+    $("type-input").classList.add("correct");
+    onCorrect();
+  } else {
+    $("type-input").classList.add("wrong");
+    $("feedback").textContent = `正确答案：${currentWord.word}`;
+    $("feedback").className = "wrong";
+    onWrong();
+  }
+  $("next-btn").classList.add("visible");
+}
+
+function onCorrect() {
+  streak++;
+  const bonus = streak >= 5 ? 3 : streak >= 3 ? 2 : 1;
+  score += 10 * bonus;
+  correct++;
+  updateHeader();
+  const msgs = ["太棒了！", "答对了！", "非常好！", "继续保持！", "完美！"];
+  const bonusTxt = bonus > 1 ? `  (+${bonus}x 连击加成)` : "";
+  $("feedback").textContent = msgs[Math.floor(Math.random() * msgs.length)] + bonusTxt;
+  $("feedback").className = "correct";
+  if (streak === 3) showToast("🔥 3连击！");
+  if (streak === 5) showToast("⚡ 5连击 — 双倍得分！");
+  if (streak === 10) showToast("🚀 10连击 — 三倍得分！");
+}
+
+function onWrong() {
+  streak = 0;
+  updateHeader();
+  $("feedback").textContent = ($("feedback").textContent || "答错了，记住正确答案！");
+  $("feedback").className = "wrong";
+}
+
+function showResult() {
+  gameScreen.style.display = "none";
+  resultScreen.classList.add("visible");
+
+  const pct = Math.round(correct / queue.length * 100);
+  const emoji = pct >= 90 ? "🏆" : pct >= 70 ? "🎉" : pct >= 50 ? "😊" : "💪";
+  $("result-emoji").textContent = emoji;
+  $("result-title").textContent = pct >= 90 ? "出色！" : pct >= 70 ? "干得好！" : pct >= 50 ? "不错！" : "继续加油！";
+  $("result-stats").innerHTML =
+    `答题总数：<strong>${queue.length}</strong><br>` +
+    `答对：<strong>${correct}</strong>，答错：<strong>${queue.length - correct}</strong><br>` +
+    `正确率：<strong>${pct}%</strong><br>` +
+    `最终得分：<strong>${score}</strong> 分`;
+}
+
+/* ──────────────────────────────────────────────
+   Event listeners
+────────────────────────────────────────────── */
+$("start-btn").addEventListener("click", startGame);
+$("restart-btn").addEventListener("click", () => {
+  resultScreen.classList.remove("visible");
+  startScreen.style.display = "flex";
+});
+
+$("next-btn").addEventListener("click", () => {
+  idx++;
+  $("type-input").disabled = false;
+  loadQuestion();
+});
+
+$("submit-btn").addEventListener("click", handleType);
+$("type-input").addEventListener("keydown", e => { if (e.key === "Enter") handleType(); });
+
+document.querySelectorAll(".mode-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    mode = btn.dataset.mode;
+  });
+});
+</script>
+</body>
+</html>
