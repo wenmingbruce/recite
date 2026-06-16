@@ -398,6 +398,132 @@ body {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
+.input-hint {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  margin-bottom: 12px;
+}
+
+.settings-desc {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-bottom: 10px;
+}
+
+.input-panel {
+  width: 100%;
+}
+
+/* 选择题 */
+.choice-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.choice-btn {
+  padding: 16px 12px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  font-family: inherit;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text);
+}
+
+.choice-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: rgba(99, 102, 241, 0.08);
+  transform: translateY(-2px);
+}
+
+.choice-btn:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.choice-btn.correct-answer {
+  border-color: var(--success);
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.choice-btn.wrong-answer {
+  border-color: var(--danger);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* 选字拼词 */
+.tile-selected {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px;
+  margin-bottom: 16px;
+  background: rgba(99, 102, 241, 0.06);
+  border: 2px dashed var(--primary-light);
+  border-radius: 12px;
+}
+
+.tile-placeholder {
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.tile-pool {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.tile-char {
+  width: 52px;
+  height: 52px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-family: inherit;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tile-char.pool:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: rgba(99, 102, 241, 0.1);
+  transform: scale(1.05);
+}
+
+.tile-char.selected {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.tile-char.used {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.btn-small {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+}
+
+
 .answer-feedback {
   margin-top: 12px;
   padding: 10px 16px;
@@ -810,5 +936,15 @@ body {
 
   .stats-row {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .choice-options {
+    grid-template-columns: 1fr;
+  }
+
+  .tile-char {
+    width: 46px;
+    height: 46px;
+    font-size: 1.2rem;
   }
 }

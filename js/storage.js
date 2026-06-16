@@ -17,7 +17,11 @@ function getDefaultWordState(id) {
 function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (!data.settings.inputMode) data.settings.inputMode = 'choice';
+      return data;
+    }
   } catch (e) {
     console.warn('Failed to load data', e);
   }
@@ -43,6 +47,7 @@ function createDefaultData() {
     settings: {
       selectedUnits: [1, 2, 3, 4, 5, 6, 7, 8],
       challengeSize: 20,
+      inputMode: 'choice', // choice | tiles | type
     },
     sessionStart: null,
   };

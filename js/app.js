@@ -7,6 +7,8 @@ let sessionWrong = 0;
 let timerInterval = null;
 let sessionSeconds = 0;
 let showingAnswer = false;
+let selectedTiles = [];
+let tileChars = [];
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
@@ -70,6 +72,13 @@ function bindEvents() {
     appData.settings.challengeSize = parseInt(e.target.value);
     saveData(appData);
   });
+
+  $('#input-mode').addEventListener('change', (e) => {
+    appData.settings.inputMode = e.target.value;
+    saveData(appData);
+  });
+
+  $('#btn-tile-clear').addEventListener('click', clearTiles);
 }
 
 function navigate(page) {
@@ -176,30 +185,49 @@ function startMode(mode) {
   showWord();
 }
 
+function getActiveInputMode() {
+  if (currentMode === 'challenge') return 'type';
+  return appData.settings.inputMode || 'choice';
+}
+
 function renderGameUI() {
   const modeNames = { learn: '📖 学习模式', review: '🔄 记忆复习', challenge: '⚔️ 终极考验', wrong: '📝 错题攻克' };
   $('#game-mode-title').textContent = modeNames[currentMode];
   $('#session-correct').textContent = '0';
   $('#session-wrong').textContent = '0';
   $('#btn-show-answer').style.display = currentMode === 'challenge' ? 'none' : 'inline-flex';
+  $('#btn-check').style.display = getActiveInputMode() === 'type' ? 'inline-flex' : 'none';
 }
 
 function showWord() {
   showingAnswer = false;
+  selectedTiles = [];
   const word = currentQueue[currentIndex];
   const ws = appData.words[word.id];
+  const inputMode = getActiveInputMode();
 
   $('#game-pinyin').textContent = word.pinyin;
   $('#game-unit').textContent = UNIT_NAMES[word.unit] || `第${word.unit}单元`;
-  $('#answer-input').value = '';
-  $('#answer-input').disabled = false;
-  $('#answer-input').focus();
   $('#answer-feedback').className = 'answer-feedback hidden';
   $('#answer-feedback').textContent = '';
   $('#correct-answer-display').classList.add('hidden');
-  $('#btn-check').style.display = 'inline-flex';
   $('#btn-next').style.display = 'none';
   $('#btn-hint').style.display = 'inline-flex';
+  $('#btn-check').style.display = inputMode === 'type' ? 'inline-flex' : 'none';
+
+  $('#input-type').classList.toggle('hidden', inputMode !== 'type');
+  $('#input-choice').classList.toggle('hidden', inputMode !== 'choice');
+  $('#input-tiles').classList.toggle('hidden', inputMode !== 'tiles');
+
+  if (inputMode === 'type') {
+    $('#answer-input').value = '';
+    $('#answer-input').disabled = false;
+    $('#answer-input').focus();
+  } else if (inputMode === 'choice') {
+    renderChoices(word);
+  } else if (inputMode === 'tiles') {
+    renderTiles(word);
+  }
 
   const strength = getMemoryStrength(ws);
   $('#memory-bar').style.width = strength + '%';
@@ -215,15 +243,170 @@ function showWord() {
   }
 }
 
+function generateChoices(correctWord) {
+  const correct = correctWord.word;
+  const pool = getFilteredWords(appData)
+    .filter((w) => w.word !== correct)
+    .map((w) => w.word);
+
+  const sameUnit = VOCABULARY.filter((v) => v.unit === correctWord.unit && v.word !== correct).map((v) => v.word);
+  const distractors = [];
+  const used = new Set([correct]);
+
+  const sources = shuffle([...sameUnit, ...pool]);
+  for (const w of sources) {
+    if (distractors.length >= 3) break;
+    if (!used.has(w)) {
+      distractors.push(w);
+      used.add(w);
+    }
+  }
+
+  while (distractors.length < 3) {
+    const fake = `词语${distractors.length + 1}`;
+    if (!used.has(fake)) {
+      distractors.push(fake);
+      used.add(fake);
+    } else break;
+  }
+
+  return shuffle([correct, ...distractors]);
+}
+
+function renderChoices(word) {
+  const options = generateChoices(word);
+  const container = $('#choice-options');
+  container.innerHTML = options
+    .map(
+      (opt) => `
+    <button class="choice-btn" data-answer="${escapeAttr(opt)}" type="button">${opt}</button>`
+    )
+    .join('');
+
+  container.querySelectorAll('.choice-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (showingAnswer) return;
+      submitAnswer(btn.dataset.answer);
+    });
+  });
+}
+
+function generateTileChars(word) {
+  const chars = [...word.word];
+  const extraPool = getFilteredWords(appData)
+    .filter((w) => w.id !== word.id)
+    .flatMap((w) => [...w.word]);
+
+  const extras = shuffle([...new Set(extraPool)])
+    .filter((c) => !chars.includes(c))
+    .slice(0, Math.min(4, Math.max(2, chars.length)));
+
+  return shuffle([...chars, ...extras].map((char, idx) => ({ char, id: idx })));
+}
+
+function renderTiles(word) {
+  selectedTiles = [];
+  tileChars = generateTileChars(word);
+  renderTileSelected();
+  renderTilePool(word);
+}
+
+function renderTileSelected() {
+  const container = $('#tile-selected');
+  if (selectedTiles.length === 0) {
+    container.innerHTML = '<span class="tile-placeholder">在这里组词...</span>';
+    return;
+  }
+  container.innerHTML = selectedTiles
+    .map(
+      (item, idx) => `
+    <button class="tile-char selected" data-idx="${idx}" type="button">${item.char}</button>`
+    )
+    .join('');
+
+  container.querySelectorAll('.tile-char').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (showingAnswer) return;
+      selectedTiles.splice(parseInt(btn.dataset.idx), 1);
+      renderTileSelected();
+      renderTilePool(currentQueue[currentIndex]);
+    });
+  });
+}
+
+function renderTilePool(word) {
+  const usedIds = new Set(selectedTiles.map((t) => t.poolId));
+  const container = $('#tile-pool');
+  container.innerHTML = tileChars
+    .map((item) => {
+      const disabled = usedIds.has(item.id);
+      return `
+      <button class="tile-char pool ${disabled ? 'used' : ''}" data-id="${item.id}" type="button" ${disabled ? 'disabled' : ''}>${item.char}</button>`;
+    })
+    .join('');
+
+  container.querySelectorAll('.tile-char.pool:not(.used)').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (showingAnswer) return;
+      const poolId = parseInt(btn.dataset.id);
+      const tile = tileChars.find((t) => t.id === poolId);
+      if (!tile || usedIds.has(poolId)) return;
+      selectedTiles.push({ char: tile.char, poolId: tile.id });
+      renderTileSelected();
+      renderTilePool(word);
+
+      if (selectedTiles.length === word.word.length) {
+        submitAnswer(selectedTiles.map((t) => t.char).join(''));
+      }
+    });
+  });
+}
+
+function clearTiles() {
+  if (showingAnswer) return;
+  selectedTiles = [];
+  renderTileSelected();
+  renderTilePool(currentQueue[currentIndex]);
+}
+
+function highlightChoiceResult(correct, selected) {
+  if (getActiveInputMode() !== 'choice') return;
+  $('#choice-options').querySelectorAll('.choice-btn').forEach((btn) => {
+    if (btn.dataset.answer === correct) btn.classList.add('correct-answer');
+    else if (btn.dataset.answer === selected) btn.classList.add('wrong-answer');
+  });
+}
+
+function disableInputControls() {
+  const inputMode = getActiveInputMode();
+  if (inputMode === 'type') {
+    $('#answer-input').disabled = true;
+  } else if (inputMode === 'choice') {
+    $('#choice-options').querySelectorAll('.choice-btn').forEach((btn) => {
+      btn.disabled = true;
+    });
+  } else if (inputMode === 'tiles') {
+    $('#tile-pool').querySelectorAll('.tile-char').forEach((btn) => {
+      btn.disabled = true;
+    });
+    $('#tile-selected').querySelectorAll('.tile-char').forEach((btn) => {
+      btn.disabled = true;
+    });
+  }
+}
+
 function checkAnswer() {
-  const word = currentQueue[currentIndex];
   const input = $('#answer-input').value.trim();
   if (!input) {
     showToast('请先输入答案哦');
     return;
   }
+  submitAnswer(input);
+}
 
-  const isCorrect = normalize(input) === normalize(word.word);
+function submitAnswer(answer) {
+  const word = currentQueue[currentIndex];
+  const isCorrect = normalize(answer) === normalize(word.word);
   const feedback = $('#answer-feedback');
   feedback.classList.remove('hidden', 'correct', 'wrong');
 
@@ -259,7 +442,8 @@ function checkAnswer() {
   }
 
   saveData(appData);
-  $('#answer-input').disabled = true;
+  disableInputControls();
+  highlightChoiceResult(word.word, answer);
   $('#btn-check').style.display = 'none';
   $('#btn-next').style.display = 'inline-flex';
   $('#btn-hint').style.display = 'none';
@@ -274,7 +458,7 @@ function showAnswer() {
   feedback.classList.remove('hidden', 'correct', 'wrong');
   feedback.classList.add('wrong');
   feedback.innerHTML = `正确答案是：<strong>${word.word}</strong>`;
-  $('#answer-input').disabled = true;
+  disableInputControls();
   $('#btn-check').style.display = 'none';
   $('#btn-next').style.display = 'inline-flex';
   showingAnswer = true;
@@ -444,6 +628,7 @@ function renderSettings() {
     cb.checked = appData.settings.selectedUnits.includes(parseInt(cb.value));
   });
   $('#challenge-size').value = appData.settings.challengeSize || 20;
+  $('#input-mode').value = appData.settings.inputMode || 'choice';
 }
 
 function startTimer() {
@@ -463,6 +648,10 @@ function stopTimer() {
 
 function normalize(str) {
   return str.replace(/\s+/g, '').toLowerCase();
+}
+
+function escapeAttr(str) {
+  return str.replace(/"/g, '&quot;');
 }
 
 function shuffle(arr) {

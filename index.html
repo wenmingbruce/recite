@@ -78,7 +78,7 @@
             <button class="mode-card learn" id="btn-start-learn">
               <div class="mode-icon">📖</div>
               <h3>学习模式</h3>
-              <p>认识新词语，轻松入门</p>
+              <p>认识新词语，点选答题免打字</p>
             </button>
             <button class="mode-card review" id="btn-start-review">
               <div class="mode-icon">🔄</div>
@@ -126,7 +126,19 @@
             <div class="review-info" id="review-info"></div>
 
             <div class="answer-area">
-              <input type="text" id="answer-input" class="answer-input" placeholder="在这里输入词语..." autocomplete="off" autofocus>
+              <div id="input-type" class="input-panel">
+                <input type="text" id="answer-input" class="answer-input" placeholder="在这里输入词语..." autocomplete="off" autofocus>
+              </div>
+              <div id="input-choice" class="input-panel hidden">
+                <p class="input-hint">点选正确的词语 👇</p>
+                <div class="choice-options" id="choice-options"></div>
+              </div>
+              <div id="input-tiles" class="input-panel hidden">
+                <p class="input-hint">按顺序点选汉字组成词语 👇</p>
+                <div class="tile-selected" id="tile-selected"></div>
+                <div class="tile-pool" id="tile-pool"></div>
+                <button class="btn btn-secondary btn-small" id="btn-tile-clear" type="button">↩ 重新选择</button>
+              </div>
               <div class="answer-feedback hidden" id="answer-feedback"></div>
               <div class="correct-answer-display hidden" id="correct-answer-display"></div>
             </div>
@@ -219,6 +231,15 @@
             <label><input type="checkbox" class="unit-checkbox" value="7" checked> 第七单元</label>
             <label><input type="checkbox" class="unit-checkbox" value="8" checked> 第八单元</label>
           </div>
+        </div>
+        <div class="settings-card">
+          <h3>答题方式</h3>
+          <p class="settings-desc">学习、复习、错题模式使用此方式；终极考验固定为键盘输入</p>
+          <select id="input-mode" class="settings-select">
+            <option value="choice">选择题（点选词语，推荐）</option>
+            <option value="tiles">选字拼词（点汉字组成词语）</option>
+            <option value="type">键盘输入（需打字）</option>
+          </select>
         </div>
         <div class="settings-card">
           <h3>考验模式题数</h3>
