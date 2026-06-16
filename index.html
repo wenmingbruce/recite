@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>拼音词语大冒险 - 四年级上册</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="logo">
+        <span class="logo-icon">📚</span>
+        <div>
+          <h1>拼音词语大冒险</h1>
+          <p class="subtitle">四年级上册 · 1-8单元</p>
+        </div>
+      </div>
+      <nav class="nav-bar">
+        <button class="nav-btn active" data-page="home">🏠 首页</button>
+        <button class="nav-btn" data-page="stats">📊 统计</button>
+        <button class="nav-btn" data-page="wrongbook">📝 错题本</button>
+        <button class="nav-btn" data-page="settings">⚙️ 设置</button>
+      </nav>
+    </header>
+
+    <main class="main-content">
+      <!-- 首页 -->
+      <section id="page-home" class="page active">
+        <div class="dashboard">
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-icon">📖</div>
+              <div class="stat-value" id="stat-total">0</div>
+              <div class="stat-label">词语总数</div>
+            </div>
+            <div class="stat-card green">
+              <div class="stat-icon">✅</div>
+              <div class="stat-value" id="stat-mastered">0</div>
+              <div class="stat-label">已掌握</div>
+            </div>
+            <div class="stat-card orange">
+              <div class="stat-icon">🔄</div>
+              <div class="stat-value" id="stat-due">0</div>
+              <div class="stat-label">待复习</div>
+            </div>
+            <div class="stat-card red">
+              <div class="stat-icon">❌</div>
+              <div class="stat-value" id="stat-wrong">0</div>
+              <div class="stat-label">错题数</div>
+            </div>
+            <div class="stat-card blue">
+              <div class="stat-icon">⏱️</div>
+              <div class="stat-value" id="stat-time">0秒</div>
+              <div class="stat-label">学习时长</div>
+            </div>
+          </div>
+
+          <div class="progress-section">
+            <div class="progress-header">
+              <span>学习进度</span>
+              <span id="progress-text">已掌握 0%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+          </div>
+
+          <div class="curve-section">
+            <h3>📈 记忆曲线分布</h3>
+            <div class="curve-chart" id="curve-chart"></div>
+          </div>
+
+          <div class="mode-grid">
+            <button class="mode-card learn" id="btn-start-learn">
+              <div class="mode-icon">📖</div>
+              <h3>学习模式</h3>
+              <p>认识新词语，轻松入门</p>
+            </button>
+            <button class="mode-card review" id="btn-start-review">
+              <div class="mode-icon">🔄</div>
+              <h3>记忆复习</h3>
+              <p>根据遗忘曲线智能复习</p>
+              <span class="badge" id="review-badge">0</span>
+            </button>
+            <button class="mode-card wrong" id="btn-start-wrong">
+              <div class="mode-icon">📝</div>
+              <h3>错题攻克</h3>
+              <p>专攻错题，查漏补缺</p>
+            </button>
+            <button class="mode-card challenge" id="btn-start-challenge">
+              <div class="mode-icon">⚔️</div>
+              <h3>终极考验</h3>
+              <p>限时挑战，检验成果</p>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 游戏页面 -->
+      <section id="page-game" class="page">
+        <div class="game-container">
+          <div class="game-header">
+            <button class="btn-exit" id="btn-exit-session">✕ 退出</button>
+            <h2 id="game-mode-title">学习模式</h2>
+            <div class="game-stats-bar">
+              <span>⏱️ <span id="session-timer">0秒</span></span>
+              <span>✅ <span id="session-correct">0</span></span>
+              <span>❌ <span id="session-wrong">0</span></span>
+              <span id="game-progress">1 / 10</span>
+            </div>
+          </div>
+
+          <div class="game-card">
+            <div class="game-unit" id="game-unit">第一单元</div>
+            <div class="memory-indicator">
+              <div class="memory-bar-bg">
+                <div class="memory-bar" id="memory-bar"></div>
+              </div>
+              <span id="memory-text">记忆强度 0%</span>
+            </div>
+            <div class="pinyin-display" id="game-pinyin">kuān kuò</div>
+            <div class="review-info" id="review-info"></div>
+
+            <div class="answer-area">
+              <input type="text" id="answer-input" class="answer-input" placeholder="在这里输入词语..." autocomplete="off" autofocus>
+              <div class="answer-feedback hidden" id="answer-feedback"></div>
+              <div class="correct-answer-display hidden" id="correct-answer-display"></div>
+            </div>
+
+            <div class="game-actions">
+              <button class="btn btn-hint" id="btn-hint">💡 提示</button>
+              <button class="btn btn-secondary" id="btn-show-answer">👀 看答案</button>
+              <button class="btn btn-primary" id="btn-check">✓ 确认</button>
+              <button class="btn btn-primary" id="btn-next" style="display:none">下一题 →</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 结果页面 -->
+      <section id="page-result" class="page">
+        <div class="result-container">
+          <div class="result-stars" id="result-stars">⭐⭐⭐</div>
+          <h2>练习完成！</h2>
+          <p class="result-message" id="result-message">做得很棒！</p>
+          <div class="result-stats">
+            <div class="result-stat">
+              <span class="result-stat-value" id="result-correct">0</span>
+              <span class="result-stat-label">正确</span>
+            </div>
+            <div class="result-stat">
+              <span class="result-stat-value" id="result-wrong">0</span>
+              <span class="result-stat-label">错误</span>
+            </div>
+            <div class="result-stat">
+              <span class="result-stat-value" id="result-accuracy">0%</span>
+              <span class="result-stat-label">正确率</span>
+            </div>
+            <div class="result-stat">
+              <span class="result-stat-value" id="result-time">0秒</span>
+              <span class="result-stat-label">用时</span>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-large" onclick="navigate('home')">返回首页</button>
+        </div>
+      </section>
+
+      <!-- 统计页面 -->
+      <section id="page-stats" class="page">
+        <h2 class="page-title">📊 学习统计</h2>
+        <div class="stats-grid">
+          <div class="stats-card">
+            <h3>总体数据</h3>
+            <div class="stats-detail">
+              <div class="stats-row-item"><span>词语总数</span><strong id="stats-total-words">0</strong></div>
+              <div class="stats-row-item"><span>已掌握</span><strong id="stats-mastered">0</strong></div>
+              <div class="stats-row-item"><span>累计学习</span><strong id="stats-total-time">0秒</strong></div>
+              <div class="stats-row-item"><span>练习次数</span><strong id="stats-sessions">0</strong></div>
+              <div class="stats-row-item"><span>总正确率</span><strong id="stats-accuracy">0%</strong></div>
+              <div class="stats-row-item"><span>答对 / 答错</span><strong><span id="stats-correct">0</span> / <span id="stats-wrong">0</span></strong></div>
+            </div>
+          </div>
+          <div class="stats-card">
+            <h3>近7日学习</h3>
+            <div class="daily-chart" id="daily-chart"></div>
+          </div>
+        </div>
+        <div class="stats-card full-width">
+          <h3>各单元掌握情况</h3>
+          <div class="unit-stats" id="unit-stats"></div>
+        </div>
+      </section>
+
+      <!-- 错题本 -->
+      <section id="page-wrongbook" class="page">
+        <div class="wrongbook-header">
+          <h2 class="page-title">📝 错题本</h2>
+          <button class="btn btn-primary" id="btn-start-wrong-from-book">开始攻克错题</button>
+        </div>
+        <div class="wrongbook-list" id="wrongbook-list"></div>
+      </section>
+
+      <!-- 设置 -->
+      <section id="page-settings" class="page">
+        <h2 class="page-title">⚙️ 设置</h2>
+        <div class="settings-card">
+          <h3>选择练习单元</h3>
+          <div class="unit-checkboxes">
+            <label><input type="checkbox" class="unit-checkbox" value="1" checked> 第一单元</label>
+            <label><input type="checkbox" class="unit-checkbox" value="2" checked> 第二单元</label>
+            <label><input type="checkbox" class="unit-checkbox" value="3" checked> 第三单元</label>
+            <label><input type="checkbox" class="unit-checkbox" value="4" checked> 第四单元</label>
+            <label><input type="checkbox" class="unit-checkbox" value="5" checked> 第五单元</label>
+            <label><input type="checkbox" class="unit-checkbox" value="6" checked> 第六单元</label>
+            <label><input type="checkbox" class="unit-checkbox" value="7" checked> 第七单元</label>
+            <label><input type="checkbox" class="unit-checkbox" value="8" checked> 第八单元</label>
+          </div>
+        </div>
+        <div class="settings-card">
+          <h3>考验模式题数</h3>
+          <select id="challenge-size" class="settings-select">
+            <option value="10">10 题</option>
+            <option value="20" selected>20 题</option>
+            <option value="30">30 题</option>
+            <option value="50">50 题</option>
+          </select>
+        </div>
+        <div class="settings-card danger">
+          <h3>重置数据</h3>
+          <p>清除所有学习记录、错题本和统计数据</p>
+          <button class="btn btn-danger" id="btn-reset">重置所有数据</button>
+        </div>
+      </section>
+    </main>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/srs.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
