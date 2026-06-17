@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>甜蜜旅程 · Sweet Journey Cafe</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧁</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="game-wrapper">
+    <!-- 装饰背景 -->
+    <div class="bg-decor">
+      <div class="bg-rose bg-rose-1">🌸</div>
+      <div class="bg-rose bg-rose-2">🌷</div>
+      <div class="bg-rose bg-rose-3">✨</div>
+      <div class="bg-rose bg-rose-4">🦋</div>
+    </div>
+
+    <!-- 顶部场景 -->
+    <header class="cafe-scene">
+      <div class="scene-sky"></div>
+      <div class="scene-cafe">
+        <div class="cafe-building">
+          <div class="cafe-awning"></div>
+          <div class="cafe-window">☕</div>
+          <div class="cafe-door"></div>
+        </div>
+        <div class="decor-flowers" id="decor-flowers">🌺🌸🌷</div>
+        <div class="decor-lights" id="decor-lights">✨💫✨</div>
+      </div>
+      <div class="scene-info">
+        <h1 id="cafe-name">甜蜜旅程咖啡馆</h1>
+        <p class="tagline">Merge · Travel · Dream</p>
+      </div>
+    </header>
+
+    <!-- HUD -->
+    <div class="hud">
+      <div class="hud-item coins"><span>🪙</span><strong id="coins">0</strong></div>
+      <div class="hud-item gems"><span>💎</span><strong id="gems">0</strong></div>
+      <div class="hud-item energy"><span>⚡</span><strong id="energy">0/0</strong></div>
+      <div class="hud-item level">
+        <span>Lv.</span><strong id="player-level">1</strong>
+        <div class="xp-track"><div class="xp-fill" id="xp-bar"></div></div>
+        <span class="xp-label" id="xp-text">0/50</span>
+      </div>
+    </div>
+
+    <!-- 主游戏区 -->
+    <main class="game-main">
+      <section class="orders-section">
+        <h2 class="section-title">💌 顾客订单</h2>
+        <p class="orders-hint">凑齐物品后点击订单即可交付</p>
+        <div class="orders-panel" id="orders-panel"></div>
+      </section>
+
+      <section class="board-section">
+        <h2 class="section-title">🎀 合并棋盘</h2>
+        <p class="board-hint">拖动相同物品合并 · 点击机器生成（按顺序喷发）</p>
+        <div class="board-frame">
+          <div class="board" id="board"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 合并链图鉴 -->
+    <section class="chain-guide">
+      <h3>✨ 合并图鉴</h3>
+      <div class="chain-list">
+        <div class="chain-row">
+          <span class="chain-label">☕ 咖啡</span>
+          <span>🫘 → ☕ → 🥤 → 🧋 → 👑</span>
+        </div>
+        <div class="chain-row">
+          <span class="chain-label">🧁 甜点</span>
+          <span>🌾 → 🍪 → 🧁 → 🎂 → 💎</span>
+        </div>
+        <div class="chain-row">
+          <span class="chain-label">✈️ 旅行</span>
+          <span>🎫 → 📮 → 🧳 → ✈️ → 🌍</span>
+        </div>
+      </div>
+    </section>
+
+    <footer class="game-footer">
+      <button class="btn-reset" id="btn-reset">🔄 重新开始</button>
+      <p>甜蜜旅程 Sweet Journey · 二合休闲游戏</p>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/items.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
