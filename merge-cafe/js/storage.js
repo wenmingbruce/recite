@@ -112,6 +112,42 @@ function findEmptyCell(grid) {
   return empties[Math.floor(Math.random() * empties.length)];
 }
 
+/** 从母体出发，按固定顺序（右→下→左→上→对角）寻找最近空格，喷发更有规律 */
+function findSpawnCellNear(grid, spawnerIdx) {
+  const { r: sr, c: sc } = rc(spawnerIdx);
+  const visited = new Set([spawnerIdx]);
+  const queue = [];
+  const directions = [
+    [0, 1], [1, 0], [0, -1], [-1, 0],
+    [1, 1], [1, -1], [-1, 1], [-1, -1],
+  ];
+
+  for (const [dr, dc] of directions) {
+    const nr = sr + dr;
+    const nc = sc + dc;
+    if (isValidCell(nr, nc)) queue.push(idx(nr, nc));
+  }
+
+  while (queue.length > 0) {
+    const i = queue.shift();
+    if (visited.has(i)) continue;
+    visited.add(i);
+
+    if (!grid[i]) return i;
+
+    const { r, c } = rc(i);
+    for (const [dr, dc] of directions) {
+      const nr = r + dr;
+      const nc = c + dc;
+      if (isValidCell(nr, nc)) {
+        const ni = idx(nr, nc);
+        if (!visited.has(ni)) queue.push(ni);
+      }
+    }
+  }
+  return -1;
+}
+
 function countItem(grid, chainId, level) {
   return grid.filter((item) => item && !item.spawner && item.chainId === chainId && item.level === level).length;
 }
@@ -160,13 +196,13 @@ function tapSpawner(state, cellIndex) {
   const spawner = SPAWNERS[item.spawner];
   if (state.energy < spawner.energyCost) return { error: 'energy' };
 
-  const emptyIdx = findEmptyCell(state.grid);
+  const emptyIdx = findSpawnCellNear(state.grid, cellIndex);
   if (emptyIdx === -1) return { error: 'full' };
 
   state.energy -= spawner.energyCost;
   state.grid[emptyIdx] = { chainId: spawner.chain, level: 1, id: randomId() };
   saveState(state);
-  return { spawned: emptyIdx };
+  return { spawned: emptyIdx, fromIdx: cellIndex };
 }
 
 function moveOrMerge(state, fromIdx, toIdx) {

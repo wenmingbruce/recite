@@ -54,12 +54,13 @@
     <main class="game-main">
       <section class="orders-section">
         <h2 class="section-title">💌 顾客订单</h2>
+        <p class="orders-hint">凑齐物品后点击订单即可交付</p>
         <div class="orders-panel" id="orders-panel"></div>
       </section>
 
       <section class="board-section">
         <h2 class="section-title">🎀 合并棋盘</h2>
-        <p class="board-hint">拖动相同物品合并 · 点击机器生成新物品</p>
+        <p class="board-hint">拖动相同物品合并 · 点击机器生成（按顺序喷发）</p>
         <div class="board-frame">
           <div class="board" id="board"></div>
         </div>
@@ -89,17 +90,6 @@
       <button class="btn-reset" id="btn-reset">🔄 重新开始</button>
       <p>甜蜜旅程 Sweet Journey · 二合休闲游戏</p>
     </footer>
-  </div>
-
-  <!-- 剧情弹窗 -->
-  <div class="modal" id="story-modal">
-    <div class="modal-card">
-      <div class="modal-avatar" id="story-avatar">👩🏻</div>
-      <h3 id="story-name">莉莉</h3>
-      <p class="modal-text" id="story-text"></p>
-      <div class="modal-reward" id="story-reward"></div>
-      <button class="btn-primary" onclick="closeStoryModal()">太棒了！💕</button>
-    </div>
   </div>
 
   <div class="toast" id="toast"></div>
