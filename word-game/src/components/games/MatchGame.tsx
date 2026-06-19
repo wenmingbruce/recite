@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Word } from '../../data/words';
+import type { Word } from '../../data/wordbooks';
 
 interface Props {
   words: Word[];

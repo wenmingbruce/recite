@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import type { Word } from '../../data/words';
-import { WORDS } from '../../data/words';
+import type { Word } from '../../data/wordbooks';
+import { ALL_WORDS as WORDS } from '../../data/wordbooks';
 import { playCorrectHit, playWrongHit, playMoleAppear, playGameOver } from '../../utils/sound';
 
 const QUESTIONS = 10;

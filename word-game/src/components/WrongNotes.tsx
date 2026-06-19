@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { ArrowLeft, CheckCircle2, RotateCcw, BookOpen } from 'lucide-react';
-import { WORDS } from '../data/words';
+import { ALL_WORDS, type Word } from '../data/wordbooks';
 import { getWrongEntries, resolveWrongEntry, getWordProgress } from '../utils/storage';
 import type { GameConfig } from '../App';
 
 interface Props {
   onBack: () => void;
   onStartGame: (config: GameConfig) => void;
+  activeWords?: Word[];
 }
 
 function formatTime(ts: number): string {
@@ -14,7 +15,9 @@ function formatTime(ts: number): string {
   return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
-export function WrongNotes({ onBack, onStartGame }: Props) {
+export function WrongNotes({ onBack, onStartGame, activeWords: _ }: Props) {
+  // Use ALL_WORDS for cross-book lookup
+  const WORDS = ALL_WORDS;
   const [showResolved, setShowResolved] = useState(false);
   const [entries, setEntries] = useState(() => getWrongEntries());
 

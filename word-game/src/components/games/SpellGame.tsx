@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Volume2 } from 'lucide-react';
-import type { Word } from '../../data/words';
+import type { Word } from '../../data/wordbooks';
 
 interface Props {
   word: Word;

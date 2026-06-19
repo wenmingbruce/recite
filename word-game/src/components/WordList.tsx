@@ -1,31 +1,21 @@
 import { useState } from 'react';
 import { ArrowLeft, Volume2, CheckCircle, Circle } from 'lucide-react';
-import { WORDS } from '../data/words';
+import { type Word } from '../data/wordbooks';
 import { getAllProgress } from '../utils/storage';
 
 interface Props {
   onBack: () => void;
+  activeWords: Word[];
 }
 
-const UNIT_LABELS: Record<string, string> = {
-  '1-Unit 1': '上册 Unit 1 - 老师',
-  '1-Unit 2': '上册 Unit 2 - 星期',
-  '1-Unit 3': '上册 Unit 3 - 食物',
-  '1-Unit 4': '上册 Unit 4 - 家务',
-  '1-Unit 5': '上册 Unit 5 - 动物',
-  '1-Unit 6': '上册 Unit 6 - 自然',
-  '2-Unit 1': '下册 Unit 1 - 未来职业',
-  '2-Unit 2': '下册 Unit 2 - 日常活动',
-  '2-Unit 3': '下册 Unit 3 - 天气',
-  '2-Unit 4': '下册 Unit 4 - 月份生日',
-  '2-Unit 5': '下册 Unit 5 - 地点',
-  '2-Unit 6': '下册 Unit 6 - 交通方向',
-};
 
-export function WordList({ onBack }: Props) {
+export function WordList({ onBack, activeWords }: Props) {
   const [selectedUnit, setSelectedUnit] = useState<string>('all');
   const [showMeaning, setShowMeaning] = useState(true);
   const allProgress = getAllProgress();
+
+  const WORDS = activeWords;
+  const units = [...new Set(WORDS.map(w => w.unit))];
 
   const speak = (text: string) => {
     if ('speechSynthesis' in window) {
@@ -38,7 +28,7 @@ export function WordList({ onBack }: Props) {
 
   const filteredWords = selectedUnit === 'all'
     ? WORDS
-    : WORDS.filter(w => `${w.semester}-${w.unit}` === selectedUnit);
+    : WORDS.filter(w => w.unit === selectedUnit);
 
   const learnedSet = new Set(
     Object.entries(allProgress).filter(([, p]) => p.isLearned).map(([id]) => id)
@@ -74,17 +64,17 @@ export function WordList({ onBack }: Props) {
           >
             全部 ({WORDS.length})
           </button>
-          {Object.entries(UNIT_LABELS).map(([key, label]) => {
-            const count = WORDS.filter(w => `${w.semester}-${w.unit}` === key).length;
+          {units.map(unit => {
+            const count = WORDS.filter(w => w.unit === unit).length;
             return (
               <button
-                key={key}
-                onClick={() => setSelectedUnit(key)}
+                key={unit}
+                onClick={() => setSelectedUnit(unit)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-                  selectedUnit === key ? 'bg-purple-500 text-white' : 'bg-white text-gray-600'
+                  selectedUnit === unit ? 'bg-purple-500 text-white' : 'bg-white text-gray-600'
                 }`}
               >
-                {label.split(' - ')[1] || label} ({count})
+                {unit} ({count})
               </button>
             );
           })}

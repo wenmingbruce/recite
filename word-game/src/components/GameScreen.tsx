@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import type { GameConfig } from '../App';
-import { WORDS, type Word } from '../data/words';
+import type { Word } from '../data/wordbooks';
 import {
   getDueWords, updateWordProgress,
   addWrongEntry, updateDailyStats, getUnresolvedWrong,
@@ -14,26 +14,25 @@ import { ResultCard } from './ResultCard';
 
 interface Props {
   config: GameConfig;
+  activeWords: Word[];
   onBack: () => void;
   onStickerBook?: () => void;
 }
 
-function getGameWords(config: GameConfig): Word[] {
+function getGameWords(config: GameConfig, activeWords: Word[]): Word[] {
   if (config.filter === 'due') {
-    const due = getDueWords(WORDS);
-    return due.length >= 4 ? due : WORDS.slice(0, Math.max(10, due.length));
+    const due = getDueWords(activeWords);
+    return due.length >= 4 ? due : activeWords.slice(0, Math.max(10, activeWords.length));
   }
   if (config.filter === 'wrong') {
     const wrongIds = new Set(getUnresolvedWrong().map(e => e.wordId));
-    const wrongWords = WORDS.filter(w => wrongIds.has(w.id));
-    return wrongWords.length >= 4 ? wrongWords : WORDS.slice(0, 10);
+    const wrongWords = activeWords.filter(w => wrongIds.has(w.id));
+    return wrongWords.length >= 4 ? wrongWords : activeWords.slice(0, 10);
   }
   if (config.filter === 'unit' && config.unitKey) {
-    const [sem, ...unitParts] = config.unitKey.split('-');
-    const unit = unitParts.join('-');
-    return WORDS.filter(w => w.semester === Number(sem) && w.unit === unit);
+    return activeWords.filter(w => w.unit === config.unitKey);
   }
-  return WORDS;
+  return activeWords;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -52,8 +51,8 @@ const MODE_LABEL: Record<string, string> = {
   whack: '打地鼠',
 };
 
-export function GameScreen({ config, onBack, onStickerBook }: Props) {
-  const [words] = useState<Word[]>(() => shuffle(getGameWords(config)));
+export function GameScreen({ config, activeWords, onBack, onStickerBook }: Props) {
+  const [words] = useState<Word[]>(() => shuffle(getGameWords(config, activeWords)));
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [total, setTotal] = useState(0);
@@ -187,7 +186,7 @@ export function GameScreen({ config, onBack, onStickerBook }: Props) {
 
       {/* Game area */}
       {config.mode === 'choice' && currentWord && (
-        <ChoiceGame word={currentWord} allWords={WORDS} onAnswer={handleAnswer} onSpeak={speak} />
+        <ChoiceGame word={currentWord} allWords={activeWords} onAnswer={handleAnswer} onSpeak={speak} />
       )}
       {config.mode === 'spell' && currentWord && (
         <SpellGame word={currentWord} onAnswer={handleAnswer} onSpeak={speak} />

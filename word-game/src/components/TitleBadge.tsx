@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { getTitleProgress } from '../utils/titles';
 import { getLearnedWords } from '../utils/storage';
-import { WORDS } from '../data/words';
+import { ALL_WORDS } from '../data/wordbooks';
 import { playLevelUp } from '../utils/sound';
 
 interface Props {
@@ -9,7 +9,7 @@ interface Props {
 }
 
 export function TitleBadge({ compact = false }: Props) {
-  const learnedCount = getLearnedWords(WORDS).length;
+  const learnedCount = getLearnedWords(ALL_WORDS).length;
   const { current, next, pct, needed } = getTitleProgress(learnedCount);
   const prevTitleId = useRef(current.id);
   const [showLevelUp, setShowLevelUp] = useState(false);

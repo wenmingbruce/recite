@@ -1,4 +1,4 @@
-import type { Word } from '../data/words';
+import type { Word } from '../data/wordbooks';
 
 export interface WordProgress {
   wordId: string;

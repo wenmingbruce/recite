@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Volume2 } from 'lucide-react';
-import type { Word } from '../../data/words';
+import type { Word } from '../../data/wordbooks';
+import { ALL_WORDS } from '../../data/wordbooks';
 
 interface Props {
   word: Word;
-  allWords: Word[];
+  allWords?: Word[];
   onAnswer: (correct: boolean, wrongAnswer?: string) => void;
   onSpeak: (text: string) => void;
 }
@@ -15,12 +16,13 @@ function getDistractors(word: Word, allWords: Word[], count: number): Word[] {
   return shuffled.slice(0, count);
 }
 
-export function ChoiceGame({ word, allWords, onAnswer, onSpeak }: Props) {
+export function ChoiceGame({ word, allWords = ALL_WORDS, onAnswer, onSpeak }: Props) {
   const [options, setOptions] = useState<Word[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
 
   useEffect(() => {
-    const distractors = getDistractors(word, allWords, 3);
+    const pool = allWords.length > 4 ? allWords : ALL_WORDS;
+    const distractors = getDistractors(word, pool, 3);
     const all = [...distractors, word].sort(() => Math.random() - 0.5);
     setOptions(all);
     setSelected(null);

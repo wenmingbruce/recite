@@ -1,9 +1,10 @@
 import { ArrowLeft, Clock, BookOpen, TrendingUp, Flame, Calendar } from 'lucide-react';
 import { getAllDailyStats, getAllProgress } from '../utils/storage';
-import { WORDS } from '../data/words';
+import { ALL_WORDS, type Word } from '../data/wordbooks';
 
 interface Props {
   onBack: () => void;
+  activeWords?: Word[];
 }
 
 function getLast7Days(): string[] {
@@ -20,7 +21,8 @@ function getDayLabel(dateStr: string): string {
   return `周${days[d.getDay()]}`;
 }
 
-export function Statistics({ onBack }: Props) {
+export function Statistics({ onBack, activeWords }: Props) {
+  const WORDS = activeWords && activeWords.length > 0 ? activeWords : ALL_WORDS;
   const allStats = getAllDailyStats();
   const allProgress = getAllProgress();
   const last7 = getLast7Days();
@@ -52,14 +54,12 @@ export function Statistics({ onBack }: Props) {
   const maxMinutes = Math.max(...chartData.map(d => d.minutes), 1);
   const maxWords = Math.max(...chartData.map(d => d.words), 1);
 
-  // Unit progress
-  const unitStats = ['上册 Unit 1', '上册 Unit 2', '上册 Unit 3', '上册 Unit 4', '上册 Unit 5', '上册 Unit 6',
-                     '下册 Unit 1', '下册 Unit 2', '下册 Unit 3', '下册 Unit 4', '下册 Unit 5', '下册 Unit 6'].map((label, i) => {
-    const sem = i < 6 ? 1 : 2;
-    const unitNum = (i % 6) + 1;
-    const unitWords = WORDS.filter(w => w.semester === sem && w.unit === `Unit ${unitNum}`);
+  // Unit progress — derive from active word list
+  const units = [...new Set(WORDS.map(w => w.unit))];
+  const unitStats = units.map(unit => {
+    const unitWords = WORDS.filter(w => w.unit === unit);
     const learnedInUnit = unitWords.filter(w => allProgress[w.id]?.isLearned).length;
-    return { label, total: unitWords.length, learned: learnedInUnit };
+    return { label: unit, total: unitWords.length, learned: learnedInUnit };
   });
 
   return (
