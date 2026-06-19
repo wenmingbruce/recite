@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import type { Word } from '../../data/wordbooks';
 import { ALL_WORDS as WORDS } from '../../data/wordbooks';
 import { playCorrectHit, playWrongHit, playMoleAppear, playGameOver } from '../../utils/sound';
+import moleImg from '../../assets/mole.png';
 
 const QUESTIONS = 10;
 const DEFAULT_MOLE_DURATION = 3500;
@@ -281,15 +282,15 @@ function MoleCell({ hole, effect, hammerActive, onClick }: MoleCellProps) {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              paddingBottom: 4,
+              paddingBottom: 2,
             }}
           >
-            <Mole3D state={hole.state} />
+            <MoleImg state={hole.state} />
             {/* Word tag */}
             {hole.word && (
               <div
                 style={{
-                  marginTop: 4,
+                  marginTop: 3,
                   fontSize: 11,
                   fontWeight: 700,
                   textAlign: 'center',
@@ -299,6 +300,7 @@ function MoleCell({ hole, effect, hammerActive, onClick }: MoleCellProps) {
                   color: hole.isCorrect ? '#92400e' : '#4b5563',
                   maxWidth: 80,
                   lineHeight: 1.2,
+                  boxShadow: hole.isCorrect ? '0 0 0 1.5px #fbbf24' : 'none',
                 }}
               >
                 {hole.word.word}
@@ -337,161 +339,50 @@ function MoleCell({ hole, effect, hammerActive, onClick }: MoleCellProps) {
   );
 }
 
-// ── 3D Mole ──────────────────────────────────────────────────────────────────
+// ── Mole image component ─────────────────────────────────────────────────────
 
-function EyeDot({ dead }: { dead: boolean }) {
-  if (dead) {
-    return (
-      <span style={{ fontSize: 13, fontWeight: 900, color: 'rgba(255,255,255,0.9)', lineHeight: 1 }}>
-        ×
-      </span>
-    );
-  }
-  return (
-    <div
-      style={{
-        width: 13, height: 13,
-        background: '#1a1a2e',
-        borderRadius: '50%',
-        boxShadow: '0 0 0 2.5px rgba(255,255,255,0.85)',
-        position: 'relative',
-      }}
-    >
-      <div
-        style={{
-          position: 'absolute', top: 2, left: 2,
-          width: 4, height: 4,
-          background: 'white',
-          borderRadius: '50%',
-        }}
-      />
-    </div>
-  );
-}
-
-function Mole3D({ state }: { state: HoleState }) {
+function MoleImg({ state }: { state: HoleState }) {
   const isDead  = state === 'hit-correct';
   const isAngry = state === 'hit-wrong';
   const isMiss  = state === 'miss';
 
-  const headScale = isDead ? 'scale(1.15)' : isAngry ? 'scale(0.9)' : 'scale(1)';
-
   return (
-    <div style={{ position: 'relative', width: 58, height: 66, transform: headScale, transition: 'transform 0.15s' }}>
-      {/* Left ear */}
-      <div
+    <div style={{ position: 'relative', width: 68, height: 72 }}>
+      <img
+        src={moleImg}
+        alt="mole"
         style={{
-          position: 'absolute', top: -10, left: 6,
-          width: 18, height: 22,
-          background: 'linear-gradient(145deg, #c8784a 30%, #7a3f20 100%)',
-          borderRadius: '50% 50% 30% 30%',
-          boxShadow: 'inset -2px -3px 5px rgba(0,0,0,0.35)',
-          zIndex: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+          transform: isDead ? 'scale(1.15) rotate(-10deg)' : isAngry ? 'scale(0.92) rotate(5deg)' : 'scale(1)',
+          transition: 'transform 0.15s',
+          filter: isDead
+            ? 'brightness(1.2) saturate(0.5)'
+            : isAngry
+            ? 'hue-rotate(20deg) brightness(0.95)'
+            : isMiss
+            ? 'brightness(0.85) opacity(0.7)'
+            : 'none',
+          imageRendering: 'crisp-edges',
         }}
-      >
-        <div style={{ position: 'absolute', top: 4, left: 4, right: 3, bottom: 3, background: 'linear-gradient(160deg, #f4c0c0, #e89090)', borderRadius: '50%' }} />
-      </div>
-
-      {/* Right ear */}
-      <div
-        style={{
-          position: 'absolute', top: -10, right: 6,
-          width: 18, height: 22,
-          background: 'linear-gradient(35deg, #c8784a 30%, #7a3f20 100%)',
-          borderRadius: '50% 50% 30% 30%',
-          boxShadow: 'inset 2px -3px 5px rgba(0,0,0,0.35)',
-          zIndex: 0,
-        }}
-      >
-        <div style={{ position: 'absolute', top: 4, left: 3, right: 4, bottom: 3, background: 'linear-gradient(20deg, #f4c0c0, #e89090)', borderRadius: '50%' }} />
-      </div>
-
-      {/* Main head */}
-      <div
-        style={{
-          position: 'relative', zIndex: 1,
-          width: 58, height: 66,
-          background: 'radial-gradient(ellipse at 38% 30%, #e8aa78 0%, #c07848 50%, #8b4513 100%)',
-          borderRadius: '50% 50% 42% 42%',
-          boxShadow: [
-            'inset -9px -6px 16px rgba(0,0,0,0.45)',
-            'inset 4px 4px 10px rgba(255,210,160,0.25)',
-            '0 5px 14px rgba(0,0,0,0.4)',
-          ].join(', '),
-          overflow: 'hidden',
-        }}
-      >
-        {/* Eyes row */}
-        <div style={{ position: 'absolute', top: 18, left: 0, right: 0, display: 'flex', justifyContent: 'space-around', padding: '0 10px' }}>
-          <EyeDot dead={isDead} />
-          <EyeDot dead={isDead} />
+      />
+      {/* Reaction overlays */}
+      {isDead && (
+        <div style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)', fontSize: 18, lineHeight: 1 }}>
+          😵
         </div>
-
-        {/* Angry brows */}
-        {isAngry && (
-          <div style={{ position: 'absolute', top: 13, left: 0, right: 0, display: 'flex', justifyContent: 'space-around', padding: '0 8px' }}>
-            <div style={{ width: 14, height: 3, background: '#5a2a10', borderRadius: 2, transform: 'rotate(15deg)' }} />
-            <div style={{ width: 14, height: 3, background: '#5a2a10', borderRadius: 2, transform: 'rotate(-15deg)' }} />
-          </div>
-        )}
-
-        {/* Nose */}
-        <div
-          style={{
-            position: 'absolute', top: 34, left: '50%', transform: 'translateX(-50%)',
-            width: 16, height: 10,
-            background: 'radial-gradient(ellipse at 40% 38%, #f498ae, #c04068)',
-            borderRadius: '40% 40% 50% 50%',
-            boxShadow: 'inset -2px -2px 4px rgba(0,0,0,0.3)',
-          }}
-        />
-
-        {/* Whiskers */}
-        {[-1, 1].map(side => (
-          [0, 1].map(row => (
-            <div
-              key={`${side}-${row}`}
-              style={{
-                position: 'absolute',
-                top: 39 + row * 5,
-                left: side === -1 ? 2 : undefined,
-                right: side === 1 ? 2 : undefined,
-                width: 15,
-                height: 1.5,
-                background: 'rgba(80,30,8,0.45)',
-                borderRadius: 2,
-                transform: `rotate(${side * (row === 0 ? -8 : 4)}deg)`,
-              }}
-            />
-          ))
-        ))}
-
-        {/* Mouth */}
-        <div
-          style={{
-            position: 'absolute',
-            top: isDead ? 52 : isAngry ? 47 : 48,
-            left: '50%', transform: 'translateX(-50%)',
-            width: isDead ? 26 : 18,
-            height: 8,
-            borderBottom: '2.5px solid rgba(60,20,5,0.55)',
-            borderRadius: isDead ? '0 0 50% 50%' : isAngry ? '50% 50% 0 0' : '0 0 50% 50%',
-          }}
-        />
-
-        {/* Dead stars */}
-        {isDead && (
-          <>
-            <span style={{ position: 'absolute', top: -6, left: -4, fontSize: 14 }}>⭐</span>
-            <span style={{ position: 'absolute', top: -4, right: -4, fontSize: 12 }}>✨</span>
-          </>
-        )}
-
-        {/* Miss sweat drop */}
-        {isMiss && (
-          <span style={{ position: 'absolute', top: 6, right: 4, fontSize: 14 }}>💦</span>
-        )}
-      </div>
+      )}
+      {isAngry && (
+        <div style={{ position: 'absolute', top: -6, left: '50%', transform: 'translateX(-50%)', fontSize: 16, lineHeight: 1 }}>
+          😤
+        </div>
+      )}
+      {isMiss && (
+        <div style={{ position: 'absolute', top: 0, right: -4, fontSize: 14, lineHeight: 1 }}>
+          💦
+        </div>
+      )}
     </div>
   );
 }
