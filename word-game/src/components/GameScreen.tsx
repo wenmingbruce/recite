@@ -4,11 +4,12 @@ import type { GameConfig } from '../App';
 import { WORDS, type Word } from '../data/words';
 import {
   getDueWords, updateWordProgress,
-  addWrongEntry, updateDailyStats, getUnresolvedWrong
+  addWrongEntry, updateDailyStats, getUnresolvedWrong,
 } from '../utils/storage';
 import { ChoiceGame } from './games/ChoiceGame';
 import { SpellGame } from './games/SpellGame';
 import { MatchGame } from './games/MatchGame';
+import { WhackGame } from './games/WhackGame';
 import { ResultCard } from './ResultCard';
 
 interface Props {
@@ -43,6 +44,13 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+const MODE_LABEL: Record<string, string> = {
+  choice: '选择题',
+  spell: '拼写',
+  match: '配对',
+  whack: '打地鼠',
+};
+
 export function GameScreen({ config, onBack }: Props) {
   const [words] = useState<Word[]>(() => shuffle(getGameWords(config)));
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -54,6 +62,8 @@ export function GameScreen({ config, onBack }: Props) {
 
   const currentWord = words[currentIndex];
   const isMatch = config.mode === 'match';
+  const isWhack = config.mode === 'whack';
+  const isBatch = isMatch || isWhack;
 
   const BATCH_SIZE = isMatch ? 6 : 10;
   const batchWords = words.slice(0, Math.min(BATCH_SIZE, words.length));
@@ -69,25 +79,15 @@ export function GameScreen({ config, onBack }: Props) {
   }, []);
 
   useEffect(() => {
-    if (currentWord) speak(currentWord.word);
-  }, [currentWord, speak]);
+    if (currentWord && !isBatch) speak(currentWord.word);
+  }, [currentWord, speak, isBatch]);
 
   const handleAnswer = useCallback((correct: boolean, wrongAnswer?: string) => {
     const word = words[currentIndex];
-    const quality = correct ? 4 : 1;
-    updateWordProgress(word.id, quality);
-
-    if (!correct && wrongAnswer) {
-      addWrongEntry(word.id, wrongAnswer, word.meaning);
-    }
-
-    if (correct) {
-      setScore(s => s + 1);
-      updateDailyStats({ wordsReviewed: 1 });
-    } else {
-      updateDailyStats({ wordsReviewed: 1 });
-    }
-
+    updateWordProgress(word.id, correct ? 4 : 1);
+    if (!correct && wrongAnswer) addWrongEntry(word.id, wrongAnswer, word.meaning);
+    updateDailyStats({ wordsReviewed: 1 });
+    if (correct) setScore(s => s + 1);
     setLastCorrect(correct);
     setTotal(t => t + 1);
 
@@ -95,7 +95,7 @@ export function GameScreen({ config, onBack }: Props) {
       setLastCorrect(null);
       if (currentIndex + 1 >= batchWords.length) {
         const minutes = Math.round((Date.now() - sessionStart.current) / 60000);
-        if (minutes > 0) updateDailyStats({ studyMinutes: minutes, sessionsCount: 0 });
+        if (minutes > 0) updateDailyStats({ studyMinutes: minutes });
         setIsFinished(true);
       } else {
         setCurrentIndex(i => i + 1);
@@ -103,20 +103,21 @@ export function GameScreen({ config, onBack }: Props) {
     }, 1000);
   }, [currentIndex, words, batchWords.length]);
 
-  const handleMatchBatch = useCallback((results: { wordId: string; correct: boolean }[]) => {
+  const handleBatchComplete = useCallback((results: { wordId: string; correct: boolean }[]) => {
     results.forEach(r => {
-      const word = words.find(w => w.id === r.wordId)!;
+      const word = words.find(w => w.id === r.wordId);
+      if (!word) return;
       updateWordProgress(word.id, r.correct ? 4 : 1);
-      if (!r.correct) addWrongEntry(word.id, '配对错误', word.meaning);
+      if (!r.correct) addWrongEntry(word.id, isWhack ? '打地鼠未命中' : '配对错误', word.meaning);
     });
     const correctCount = results.filter(r => r.correct).length;
     setScore(correctCount);
     setTotal(results.length);
     updateDailyStats({ wordsReviewed: results.length });
     const minutes = Math.round((Date.now() - sessionStart.current) / 60000);
-    if (minutes > 0) updateDailyStats({ studyMinutes: minutes, sessionsCount: 0 });
+    if (minutes > 0) updateDailyStats({ studyMinutes: minutes });
     setIsFinished(true);
-  }, [words]);
+  }, [words, isWhack]);
 
   if (words.length === 0) {
     return (
@@ -148,7 +149,7 @@ export function GameScreen({ config, onBack }: Props) {
     );
   }
 
-  const progress = isMatch ? 100 : Math.round((currentIndex / batchWords.length) * 100);
+  const progress = isBatch ? 0 : Math.round((currentIndex / batchWords.length) * 100);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-4">
@@ -159,19 +160,21 @@ export function GameScreen({ config, onBack }: Props) {
         </button>
         <div className="flex-1">
           <div className="flex justify-between text-xs text-gray-500 mb-1">
-            <span>{isMatch ? '配对游戏' : `${currentIndex + 1} / ${batchWords.length}`}</span>
-            <span>得分 {score}</span>
+            <span>{MODE_LABEL[config.mode] ?? config.mode}</span>
+            {!isBatch && <span>{currentIndex + 1} / {batchWords.length}</span>}
           </div>
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full transition-all duration-300"
-              style={{ width: `${isMatch ? 0 : progress}%` }}
-            />
-          </div>
+          {!isBatch && (
+            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Feedback Overlay */}
+      {/* Feedback flash */}
       {lastCorrect !== null && (
         <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl font-bold text-white shadow-lg animate-bounce-in ${
           lastCorrect ? 'bg-green-500' : 'bg-red-400'
@@ -180,28 +183,18 @@ export function GameScreen({ config, onBack }: Props) {
         </div>
       )}
 
-      {/* Game Area */}
+      {/* Game area */}
       {config.mode === 'choice' && currentWord && (
-        <ChoiceGame
-          word={currentWord}
-          allWords={WORDS}
-          onAnswer={handleAnswer}
-          onSpeak={speak}
-        />
+        <ChoiceGame word={currentWord} allWords={WORDS} onAnswer={handleAnswer} onSpeak={speak} />
       )}
       {config.mode === 'spell' && currentWord && (
-        <SpellGame
-          word={currentWord}
-          onAnswer={handleAnswer}
-          onSpeak={speak}
-        />
+        <SpellGame word={currentWord} onAnswer={handleAnswer} onSpeak={speak} />
       )}
       {config.mode === 'match' && (
-        <MatchGame
-          words={batchWords}
-          onComplete={handleMatchBatch}
-          onSpeak={speak}
-        />
+        <MatchGame words={batchWords} onComplete={handleBatchComplete} onSpeak={speak} />
+      )}
+      {config.mode === 'whack' && (
+        <WhackGame words={words} onComplete={handleBatchComplete} />
       )}
     </div>
   );

@@ -7,7 +7,7 @@ import { WordList } from './components/WordList';
 import { startSession, endSession } from './utils/storage';
 
 export type Screen = 'home' | 'game' | 'wrong' | 'stats' | 'wordlist';
-export type GameMode = 'choice' | 'spell' | 'match';
+export type GameMode = 'choice' | 'spell' | 'match' | 'whack';
 export type GameFilter = 'due' | 'unit' | 'wrong';
 
 export interface GameConfig {
