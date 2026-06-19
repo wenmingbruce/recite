@@ -54,6 +54,23 @@ function save<T>(key: string, value: T): void {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
+// ---------- Reset all data ----------
+
+export function resetAllData(): void {
+  const allKeys = [
+    'pep5_word_progress',
+    'pep5_wrong_entries',
+    'pep5_daily_stats',
+    'pep5_active_session',
+    'pep5_stickers',
+    'pep5_pet',
+    'selected_grade',
+    'selected_semester',
+    'whack_duration',
+  ];
+  allKeys.forEach(k => localStorage.removeItem(k));
+}
+
 // ---------- Word Progress ----------
 
 export function getAllProgress(): Record<string, WordProgress> {

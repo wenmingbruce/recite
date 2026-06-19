@@ -1,10 +1,51 @@
-import { ArrowLeft, Clock, BookOpen, TrendingUp, Flame, Calendar } from 'lucide-react';
-import { getAllDailyStats, getAllProgress } from '../utils/storage';
+import { useState } from 'react';
+import { ArrowLeft, Clock, BookOpen, TrendingUp, Flame, Calendar, Trash2, AlertTriangle } from 'lucide-react';
+import { getAllDailyStats, getAllProgress, resetAllData } from '../utils/storage';
 import { ALL_WORDS, type Word } from '../data/wordbooks';
 
 interface Props {
   onBack: () => void;
   activeWords?: Word[];
+}
+
+function ConfirmDialog({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-6"
+      style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
+      <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-bounce-in">
+        <div className="flex justify-center mb-4">
+          <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+            <AlertTriangle size={32} className="text-red-500" />
+          </div>
+        </div>
+        <h2 className="text-xl font-extrabold text-gray-800 text-center mb-2">确定要清零吗？</h2>
+        <p className="text-sm text-gray-500 text-center mb-1">
+          这将清除<span className="font-semibold text-red-500">所有</span>数据：
+        </p>
+        <ul className="text-sm text-gray-500 text-center space-y-0.5 mb-5">
+          <li>📚 单词学习进度 &amp; 错题本</li>
+          <li>🐾 宠物进度 &amp; 金块</li>
+          <li>🎁 所有贴画收藏</li>
+          <li>📊 学习统计记录</li>
+        </ul>
+        <p className="text-xs text-red-400 text-center font-semibold mb-5">⚠️ 此操作不可撤销！</p>
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-2xl font-semibold hover:bg-gray-200 transition-colors"
+          >
+            取消
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 py-3 bg-red-500 text-white rounded-2xl font-bold hover:bg-red-600 transition-colors shadow-md"
+          >
+            确认清零
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function getLast7Days(): string[] {
@@ -22,6 +63,16 @@ function getDayLabel(dateStr: string): string {
 }
 
 export function Statistics({ onBack, activeWords }: Props) {
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [resetDone, setResetDone] = useState(false);
+
+  const handleReset = () => {
+    resetAllData();
+    setShowConfirm(false);
+    setResetDone(true);
+    // Go back to home after brief confirmation
+    setTimeout(() => onBack(), 1800);
+  };
   const WORDS = activeWords && activeWords.length > 0 ? activeWords : ALL_WORDS;
   const allStats = getAllDailyStats();
   const allProgress = getAllProgress();
@@ -177,6 +228,37 @@ export function Statistics({ onBack, activeWords }: Props) {
           ))}
         </div>
       </div>
+
+      {/* ── Reset all data ── */}
+      <div className="mt-5 mb-2">
+        <button
+          onClick={() => setShowConfirm(true)}
+          className="w-full flex items-center justify-center gap-2 py-3.5 bg-white border border-red-200 text-red-500 rounded-2xl font-semibold hover:bg-red-50 active:bg-red-100 transition-colors shadow-sm"
+        >
+          <Trash2 size={18} />
+          清零所有数据
+        </button>
+        <p className="text-xs text-gray-400 text-center mt-1.5">
+          清除单词进度、宠物、贴画、统计记录
+        </p>
+      </div>
+
+      {/* Confirm dialog */}
+      {showConfirm && (
+        <ConfirmDialog
+          onConfirm={handleReset}
+          onCancel={() => setShowConfirm(false)}
+        />
+      )}
+
+      {/* Reset done toast */}
+      {resetDone && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className="bg-gray-800 text-white px-6 py-3 rounded-2xl font-semibold shadow-xl animate-bounce-in">
+            ✅ 数据已清零，正在返回首页…
+          </div>
+        </div>
+      )}
     </div>
   );
 }
