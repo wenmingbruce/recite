@@ -6,6 +6,11 @@ import {
 } from '../utils/pet';
 import { PetDisplay } from './PetDisplay';
 import { playLevelUp, playCorrectHit } from '../utils/sound';
+import petLv1 from '../assets/pet_lv1.png';
+import petLv2 from '../assets/pet_lv2.png';
+import petLv3 from '../assets/pet_lv3.png';
+
+const STAGE_IMGS = [null, petLv1, petLv2, petLv3] as const;
 
 interface Props { onBack: () => void; }
 
@@ -186,23 +191,111 @@ export function PetRoom({ onBack }: Props) {
       {/* All stages preview */}
       <div className="bg-white rounded-2xl p-4 shadow-sm">
         <p className="font-bold text-gray-700 mb-3">成长路线</p>
-        <div className="flex justify-between items-center gap-2">
-          {PET_STAGES.map((s, i) => (
-            <div key={i} className={`flex-1 flex flex-col items-center gap-1.5 ${i > pet.level ? 'opacity-30 grayscale' : ''}`}>
-              <div className={`text-3xl ${i === pet.level ? 'animate-pop' : ''}`}>
-                {['🥚','🐱','✨','👑'][i]}
+        <div className="flex items-end justify-between gap-1">
+          {PET_STAGES.map((s, i) => {
+            const unlocked = i <= pet.level;
+            const isCurrent = i === pet.level;
+            const img = STAGE_IMGS[i as 0|1|2|3];
+
+            return (
+              <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                {/* Stage image or silhouette */}
+                <div style={{ position: 'relative', width: 60, height: 60 }}>
+                  {i === 0 ? (
+                    /* Egg */
+                    <div style={{
+                      width: 54, height: 54, margin: '0 auto',
+                      background: unlocked
+                        ? 'radial-gradient(ellipse at 38% 30%,#fff9f0 0%,#fde8c8 55%,#f5c98e 100%)'
+                        : 'radial-gradient(ellipse, #c0c0c0 0%, #888 100%)',
+                      borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: isCurrent ? '0 0 0 2.5px #a855f7' : 'none',
+                      opacity: unlocked ? 1 : 0.4,
+                    }}>
+                      <span style={{ fontSize: 22, filter: unlocked ? 'none' : 'brightness(0) opacity(0.5)' }}>
+                        {unlocked ? '🥚' : '🥚'}
+                      </span>
+                    </div>
+                  ) : (
+                    /* Pet image or silhouette */
+                    <div style={{
+                      width: 60, height: 60,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      position: 'relative',
+                    }}>
+                      <img
+                        src={img!}
+                        alt={s.name}
+                        style={{
+                          width: 54, height: 54,
+                          objectFit: 'contain',
+                          /* Silhouette for locked, full color for unlocked */
+                          filter: unlocked
+                            ? isCurrent
+                              ? 'drop-shadow(0 0 6px rgba(168,85,247,0.7))'
+                              : 'none'
+                            : 'brightness(0) opacity(0.22)',
+                          transition: 'filter 0.4s',
+                        }}
+                      />
+                      {/* Current level indicator ring */}
+                      {isCurrent && (
+                        <div style={{
+                          position: 'absolute', inset: -3,
+                          borderRadius: '50%',
+                          border: '2.5px solid #a855f7',
+                          boxShadow: '0 0 8px rgba(168,85,247,0.5)',
+                          pointerEvents: 'none',
+                        }} />
+                      )}
+                      {/* Lock icon for still locked */}
+                      {!unlocked && (
+                        <div style={{
+                          position: 'absolute', bottom: 2, right: 2,
+                          fontSize: 14, lineHeight: 1,
+                          filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))',
+                        }}>🔒</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Name */}
+                <div style={{
+                  fontSize: 10, fontWeight: 700, textAlign: 'center', lineHeight: 1.2,
+                  color: isCurrent ? '#7c3aed' : unlocked ? '#374151' : '#9ca3af',
+                }}>
+                  {unlocked ? s.name : '???'}
+                </div>
+
+                {/* Cost to next */}
+                {i < PET_STAGES.length - 1 && !unlocked && (
+                  <div style={{ fontSize: 10, color: '#d1d5db' }}>100💛</div>
+                )}
+
+                {/* Current dot */}
+                {isCurrent && (
+                  <div style={{
+                    width: 8, height: 8, borderRadius: '50%',
+                    background: '#7c3aed', boxShadow: '0 0 6px rgba(124,58,237,0.6)',
+                  }} />
+                )}
               </div>
-              <div className={`text-xs text-center font-semibold leading-tight ${i === pet.level ? 'text-purple-600' : 'text-gray-400'}`}>
-                {s.name}
-              </div>
-              {i < PET_STAGES.length - 1 && (
-                <div className="text-xs text-gray-300">100💛</div>
-              )}
-              {i === pet.level && (
-                <div className="w-2.5 h-2.5 bg-purple-500 rounded-full shadow-sm" />
-              )}
-            </div>
-          ))}
+            );
+          })}
+        </div>
+
+        {/* Legend */}
+        <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-4 rounded-full border-2 border-purple-400" />
+            <span className="text-xs text-gray-500">当前</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm">🔒</span>
+            <span className="text-xs text-gray-500">未解锁（显示轮廓）</span>
+          </div>
         </div>
       </div>
     </div>
