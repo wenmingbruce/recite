@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import type { Word } from '../../data/wordbooks';
-import { ALL_WORDS as WORDS } from '../../data/wordbooks';
+import { ALL_WORDS } from '../../data/wordbooks';
+import { ALL_CHINESE_WORDS } from '../../data/chinesebooks';
 import { playCorrectHit, playWrongHit, playMoleAppear, playGameOver } from '../../utils/sound';
 import moleImg from '../../assets/mole.png';
 
@@ -19,7 +20,8 @@ interface Hole {
 
 interface Props {
   words: Word[];
-  duration?: number; // ms each mole stays up
+  allWords?: Word[];  // full pool for distractors (defaults to same-language pool)
+  duration?: number;
   onComplete: (results: { wordId: string; correct: boolean }[]) => void;
 }
 
@@ -33,14 +35,19 @@ function shuffle<T>(a: T[]): T[] {
   return [...a].sort(() => Math.random() - 0.5);
 }
 
-function pickGameWords(words: Word[]): Word[] {
-  const pool = words.length >= 4 ? words : WORDS;
+function pickGameWords(words: Word[], fallback: Word[]): Word[] {
+  const pool = words.length >= 4 ? words : fallback;
   return shuffle(pool).slice(0, Math.min(QUESTIONS, pool.length));
 }
 
-export function WhackGame({ words, duration = DEFAULT_MOLE_DURATION, onComplete }: Props) {
+export function WhackGame({ words, allWords, duration = DEFAULT_MOLE_DURATION, onComplete }: Props) {
   const MOLE_DURATION = duration;
-  const gameWords = useRef(pickGameWords(words));
+  // Detect language
+  const isChinese_ = words.some(w => w.id.startsWith('zh_'));
+  const isPoem = words.some(w => w.unit?.startsWith('古诗'));
+  // Pick distractor pool: prefer passed allWords, else detect language from word IDs
+  const WORDS = allWords ?? (isChinese_ ? ALL_CHINESE_WORDS : ALL_WORDS);
+  const gameWords = useRef(pickGameWords(words, WORDS));
   const total = gameWords.current.length;
   const results = useRef<{ wordId: string; correct: boolean }[]>([]);
   const locked = useRef(false);
@@ -187,9 +194,22 @@ export function WhackGame({ words, duration = DEFAULT_MOLE_DURATION, onComplete 
     <div>
       {/* Target question */}
       <div className="bg-white rounded-3xl px-6 py-4 shadow-sm mb-3 text-center">
-        <p className="text-sm text-gray-400">🔨 用锤子打中表示</p>
-        <p className="text-3xl font-extrabold text-purple-700 my-1">{target?.meaning}</p>
-        <p className="text-sm text-gray-400">的那只老鼠！</p>
+        {isPoem ? (
+          <>
+            <p className="text-xs text-gray-400 mb-0.5">{target?.example}</p>
+            <p className="text-sm text-gray-400">🔨 打中下一句是</p>
+            <p className="text-2xl font-extrabold text-purple-700 my-1">{target?.meaning}</p>
+            <p className="text-sm text-gray-400">的那只老鼠！</p>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-gray-400">🔨 用锤子打中表示</p>
+            <p className={`font-extrabold text-purple-700 my-1 ${isChinese_ ? 'text-lg leading-snug' : 'text-3xl'}`}>
+              {target?.meaning}
+            </p>
+            <p className="text-sm text-gray-400">的那只老鼠！</p>
+          </>
+        )}
         <div className="mt-3 h-2.5 bg-gray-100 rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full ${timerColor}`}

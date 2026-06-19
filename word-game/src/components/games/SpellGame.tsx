@@ -14,6 +14,9 @@ export function SpellGame({ word, onAnswer, onSpeak }: Props) {
   const [showHint, setShowHint] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const isCh   = word.id.startsWith('zh_');
+  const isPoem = word.unit.startsWith('古诗');
+
   useEffect(() => {
     setInput('');
     setSubmitted(false);
@@ -24,7 +27,7 @@ export function SpellGame({ word, onAnswer, onSpeak }: Props) {
   const handleSubmit = () => {
     if (submitted || !input.trim()) return;
     setSubmitted(true);
-    const correct = input.trim().toLowerCase() === word.word.toLowerCase();
+    const correct = input.trim() === word.word.trim();
     onAnswer(correct, correct ? undefined : input.trim());
   };
 
@@ -32,34 +35,52 @@ export function SpellGame({ word, onAnswer, onSpeak }: Props) {
     if (e.key === 'Enter') handleSubmit();
   };
 
+  // Hint: reveal first char + last char
   const hintText = word.word
     .split('')
-    .map((c, i) => (i === 0 || i === word.word.length - 1 ? c : '_'))
-    .join(' ');
+    .map((c, i) => (i === 0 || i === word.word.length - 1 ? c : isCh ? '□' : '_'))
+    .join(isCh ? '' : ' ');
 
-  const isCorrect = submitted && input.trim().toLowerCase() === word.word.toLowerCase();
+  const isCorrect = submitted && input.trim() === word.word.trim();
 
   return (
     <div>
-      {/* Word Prompt */}
-      <div className="bg-white rounded-3xl p-8 shadow-sm mb-6 text-center">
-        <div className="text-lg text-gray-500 mb-2">{word.meaning}</div>
-        <div className="text-sm text-gray-400 mb-4">{word.phonetic}</div>
-        <button
-          onClick={() => onSpeak(word.word)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-500 rounded-xl hover:bg-blue-100 transition-colors mb-3"
-        >
-          <Volume2 size={16} />
-          <span className="text-sm">听发音</span>
-        </button>
+      {/* Question card */}
+      <div className="bg-white rounded-3xl p-7 shadow-sm mb-5 text-center">
+        {isPoem ? (
+          <>
+            <p className="text-xs text-gray-400 mb-1">{word.example}</p>
+            <p className="text-sm text-gray-500 mb-2">写出下一句：</p>
+            <div className="text-xl font-bold text-purple-700 mb-1">{word.word}</div>
+            <div className="text-xs text-gray-400">{word.phonetic}</div>
+          </>
+        ) : (
+          <>
+            <div className={`text-gray-600 mb-2 leading-snug ${isCh ? 'text-xl font-semibold' : 'text-lg'}`}>
+              {word.meaning}
+            </div>
+            <div className="text-sm text-gray-400 mb-3">{word.phonetic}</div>
+            {!isCh && (
+              <button
+                onClick={() => onSpeak(word.word)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-500 rounded-xl hover:bg-blue-100 transition-colors"
+              >
+                <Volume2 size={16} />
+                <span className="text-sm">听发音</span>
+              </button>
+            )}
+          </>
+        )}
         {showHint && (
-          <div className="bg-yellow-50 rounded-xl px-4 py-2 text-yellow-700 font-mono tracking-widest text-lg">
+          <div className="mt-3 bg-yellow-50 rounded-xl px-4 py-2 text-yellow-700 font-bold tracking-widest text-lg">
             {hintText}
           </div>
         )}
       </div>
 
-      <p className="text-center text-sm text-gray-500 mb-3">拼写英文单词</p>
+      <p className="text-center text-sm text-gray-500 mb-3">
+        {isPoem ? '输入下一句诗' : isCh ? '输入这个词语' : '拼写英文单词'}
+      </p>
 
       {/* Input */}
       <div className={`bg-white rounded-2xl shadow-sm overflow-hidden mb-3 border-2 transition-colors ${
@@ -70,14 +91,15 @@ export function SpellGame({ word, onAnswer, onSpeak }: Props) {
           value={input}
           onChange={e => !submitted && setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="输入英文单词..."
-          className="w-full px-5 py-4 text-xl font-mono text-gray-800 outline-none bg-transparent text-center tracking-widest"
+          placeholder={isPoem ? '输入下一句...' : isCh ? '输入词语...' : '输入英文单词...'}
+          className={`w-full px-5 py-4 text-gray-800 outline-none bg-transparent text-center ${
+            isCh ? 'text-xl' : 'text-xl font-mono tracking-widest'
+          }`}
           spellCheck={false}
           autoComplete="off"
         />
       </div>
 
-      {/* Action Buttons */}
       <div className="flex gap-2 mb-4">
         {!submitted && (
           <>
@@ -91,7 +113,7 @@ export function SpellGame({ word, onAnswer, onSpeak }: Props) {
             <button
               onClick={handleSubmit}
               disabled={!input.trim()}
-              className="flex-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-bold disabled:opacity-40"
+              className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-bold disabled:opacity-40"
             >
               确认
             </button>
@@ -99,18 +121,21 @@ export function SpellGame({ word, onAnswer, onSpeak }: Props) {
         )}
       </div>
 
-      {/* Result */}
       {submitted && (
         <div className={`rounded-2xl p-4 ${isCorrect ? 'bg-green-50' : 'bg-red-50'}`}>
           {isCorrect ? (
-            <p className="text-green-700 font-bold text-center text-lg">✓ 拼写正确！</p>
+            <p className="text-green-700 font-bold text-center text-lg">✓ 答对了！</p>
           ) : (
             <>
               <p className="text-red-600 font-bold text-center">✗ 正确答案：</p>
-              <p className="text-center text-2xl font-mono font-bold text-gray-800 mt-1">{word.word}</p>
+              <p className={`text-center font-bold text-gray-800 mt-1 ${isCh ? 'text-xl' : 'text-2xl font-mono'}`}>
+                {word.word}
+              </p>
             </>
           )}
-          <p className="text-xs text-gray-500 mt-2 text-center italic">"{word.example}"</p>
+          <p className="text-xs text-gray-500 mt-2 text-center">
+            {isPoem ? word.example : `"${word.example}"`}
+          </p>
         </div>
       )}
     </div>
