@@ -1,0 +1,139 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f0f4ff;
+    min-height: 100vh;
+  }
+}
+
+/* ── Bounce in ─────────────────────────────────────────────────────────────── */
+@keyframes bounceIn {
+  0%   { transform: scale(0.6); opacity: 0; }
+  60%  { transform: scale(1.12); }
+  80%  { transform: scale(0.96); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-bounce-in {
+  animation: bounceIn 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+/* ── Shake ─────────────────────────────────────────────────────────────────── */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-7px); }
+  40%       { transform: translateX(7px); }
+  60%       { transform: translateX(-5px); }
+  80%       { transform: translateX(5px); }
+}
+.animate-shake {
+  animation: shake 0.38s ease-in-out;
+}
+
+/* ── Pop (scale pulse) ─────────────────────────────────────────────────────── */
+@keyframes pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+.animate-pop {
+  animation: pop 0.22s ease-out;
+}
+
+/* ── Hammer swing ──────────────────────────────────────────────────────────── */
+@keyframes hammer {
+  0%   { transform: rotate(-50deg) translateY(-4px); }
+  40%  { transform: rotate(15deg) translateY(6px) scale(1.15); }
+  70%  { transform: rotate(-8deg) translateY(2px); }
+  100% { transform: rotate(0deg) translateY(0); }
+}
+.animate-hammer {
+  animation: hammer 0.32s cubic-bezier(0.4, 0, 0.2, 1) both;
+  transform-origin: bottom right;
+}
+
+/* ── Sticker reveal ────────────────────────────────────────────────────────── */
+@keyframes stickerReveal {
+  0%   { transform: scale(0) rotate(-25deg); opacity: 0; }
+  55%  { transform: scale(1.25) rotate(8deg); opacity: 1; }
+  75%  { transform: scale(0.92) rotate(-4deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.animate-sticker-reveal {
+  animation: stickerReveal 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+/* ── Confetti fall ─────────────────────────────────────────────────────────── */
+@keyframes confettiFall {
+  0%   { transform: translateY(-20px) rotate(0deg) scale(1); opacity: 1; }
+  80%  { opacity: 0.8; }
+  100% { transform: translateY(105vh) rotate(540deg) scale(0.5); opacity: 0; }
+}
+.animate-confetti {
+  animation: confettiFall linear forwards;
+}
+
+/* ── Star burst ────────────────────────────────────────────────────────────── */
+@keyframes starBurst {
+  0%   { transform: rotate(var(--r, 0deg)) translateX(0); opacity: 0; scale: 0; }
+  40%  { opacity: 1; scale: 1.2; }
+  100% { transform: rotate(var(--r, 0deg)) translateX(36px); opacity: 0; scale: 0.5; }
+}
+.animate-star-burst {
+  animation: starBurst 0.7s ease-out both;
+}
+
+/* ── Float up ──────────────────────────────────────────────────────────────── */
+@keyframes floatUp {
+  0%   { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-40px); opacity: 0; }
+}
+.animate-float-up {
+  animation: floatUp 1s ease-out forwards;
+}
+
+/* ── Pet animations ────────────────────────────────────────────────────────── */
+@keyframes petBob {
+  0%, 100% { transform: translateY(0px) rotate(-1deg); }
+  50%       { transform: translateY(-8px) rotate(1deg); }
+}
+@keyframes petEat {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  30%       { transform: scale(1.12) rotate(-5deg); }
+  60%       { transform: scale(0.95) rotate(4deg); }
+}
+@keyframes eggWiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25%       { transform: rotate(-8deg); }
+  75%       { transform: rotate(8deg); }
+}
+@keyframes petGlow {
+  0%   { opacity: 0.6; transform: scale(0.95); }
+  100% { opacity: 1;   transform: scale(1.05); }
+}
+@keyframes wingFlap {
+  0%   { transform: rotate(-18deg) scaleY(0.95); }
+  100% { transform: rotate(-8deg)  scaleY(1.05); }
+}
+@keyframes spinRainbow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+/* Rainbow ring uses border rotation hack */
+@property --a {
+  syntax: '<angle>';
+  initial-value: 0turn;
+  inherits: false;
+}
+@keyframes rainbowSpin {
+  to { --a: 1turn; }
+}
+@keyframes floatSpark {
+  0%   { transform: translateY(0) scale(0.9); opacity: 0.7; }
+  100% { transform: translateY(-10px) scale(1.1); opacity: 1; }
+}
+@keyframes coinFloat {
+  0%   { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+}
