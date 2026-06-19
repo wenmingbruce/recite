@@ -4,9 +4,10 @@ import { GameScreen } from './components/GameScreen';
 import { WrongNotes } from './components/WrongNotes';
 import { Statistics } from './components/Statistics';
 import { WordList } from './components/WordList';
+import { StickerBook } from './components/StickerBook';
 import { startSession, endSession } from './utils/storage';
 
-export type Screen = 'home' | 'game' | 'wrong' | 'stats' | 'wordlist';
+export type Screen = 'home' | 'game' | 'wrong' | 'stats' | 'wordlist' | 'stickers';
 export type GameMode = 'choice' | 'spell' | 'match' | 'whack';
 export type GameFilter = 'due' | 'unit' | 'wrong';
 
@@ -19,6 +20,7 @@ export interface GameConfig {
 export default function App() {
   const [screen, setScreen] = useState<Screen>('home');
   const [gameConfig, setGameConfig] = useState<GameConfig>({ mode: 'choice', filter: 'due' });
+  const [prevScreen, setPrevScreen] = useState<Screen>('home');
 
   useEffect(() => {
     if (screen === 'game') {
@@ -27,9 +29,14 @@ export default function App() {
     }
   }, [screen]);
 
+  const navigate = (s: Screen) => {
+    setPrevScreen(screen);
+    setScreen(s);
+  };
+
   const startGame = (config: GameConfig) => {
     setGameConfig(config);
-    setScreen('game');
+    navigate('game');
   };
 
   return (
@@ -37,13 +44,18 @@ export default function App() {
       {screen === 'home' && (
         <Home
           onStartGame={startGame}
-          onShowWrong={() => setScreen('wrong')}
-          onShowStats={() => setScreen('stats')}
-          onShowWordList={() => setScreen('wordlist')}
+          onShowWrong={() => navigate('wrong')}
+          onShowStats={() => navigate('stats')}
+          onShowWordList={() => navigate('wordlist')}
+          onShowStickers={() => navigate('stickers')}
         />
       )}
       {screen === 'game' && (
-        <GameScreen config={gameConfig} onBack={() => setScreen('home')} />
+        <GameScreen
+          config={gameConfig}
+          onBack={() => setScreen('home')}
+          onStickerBook={() => navigate('stickers')}
+        />
       )}
       {screen === 'wrong' && (
         <WrongNotes onBack={() => setScreen('home')} onStartGame={startGame} />
@@ -53,6 +65,9 @@ export default function App() {
       )}
       {screen === 'wordlist' && (
         <WordList onBack={() => setScreen('home')} />
+      )}
+      {screen === 'stickers' && (
+        <StickerBook onBack={() => setScreen(prevScreen === 'stickers' ? 'home' : prevScreen)} />
       )}
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpen, BarChart2, AlertCircle, List, Zap, Brain } from 'lucide-react';
+import { BookOpen, BarChart2, AlertCircle, List, Zap, Brain, Sparkles } from 'lucide-react';
 import { WORDS } from '../data/words';
 import { getDueWords, getLearnedWords, getTodayStats, getAllProgress } from '../utils/storage';
 import { TitleBadge } from './TitleBadge';
@@ -10,6 +10,7 @@ interface Props {
   onShowWrong: () => void;
   onShowStats: () => void;
   onShowWordList: () => void;
+  onShowStickers: () => void;
 }
 
 const UNITS = [
@@ -34,7 +35,7 @@ const MODES: { id: GameMode; label: string; icon: string; desc: string }[] = [
   { id: 'whack',  label: '打地鼠', icon: '🔨', desc: '快准狠！' },
 ];
 
-export function Home({ onStartGame, onShowWrong, onShowStats, onShowWordList }: Props) {
+export function Home({ onStartGame, onShowWrong, onShowStats, onShowWordList, onShowStickers }: Props) {
   const [selectedMode, setSelectedMode] = useState<GameMode>('choice');
   const [selectedFilter, setSelectedFilter] = useState<GameFilter>('due');
   const [selectedUnit, setSelectedUnit] = useState<string>(UNITS[0].key);
@@ -188,27 +189,34 @@ export function Home({ onStartGame, onShowWrong, onShowStats, onShowWordList }: 
       </div>
 
       {/* Bottom nav */}
-      <div className="grid grid-cols-3 gap-3 mb-5">
+      <div className="grid grid-cols-4 gap-2 mb-5">
         <button
           onClick={onShowWrong}
-          className="bg-white rounded-2xl p-4 shadow-sm flex flex-col items-center gap-1 hover:bg-red-50 transition-colors"
+          className="bg-white rounded-2xl py-3 px-1 shadow-sm flex flex-col items-center gap-1 hover:bg-red-50 transition-colors"
         >
-          <AlertCircle size={22} className="text-red-400" />
+          <AlertCircle size={20} className="text-red-400" />
           <span className="text-xs font-semibold text-gray-600">错题本</span>
         </button>
         <button
           onClick={onShowStats}
-          className="bg-white rounded-2xl p-4 shadow-sm flex flex-col items-center gap-1 hover:bg-blue-50 transition-colors"
+          className="bg-white rounded-2xl py-3 px-1 shadow-sm flex flex-col items-center gap-1 hover:bg-blue-50 transition-colors"
         >
-          <BarChart2 size={22} className="text-blue-400" />
-          <span className="text-xs font-semibold text-gray-600">学习统计</span>
+          <BarChart2 size={20} className="text-blue-400" />
+          <span className="text-xs font-semibold text-gray-600">统计</span>
         </button>
         <button
           onClick={onShowWordList}
-          className="bg-white rounded-2xl p-4 shadow-sm flex flex-col items-center gap-1 hover:bg-green-50 transition-colors"
+          className="bg-white rounded-2xl py-3 px-1 shadow-sm flex flex-col items-center gap-1 hover:bg-green-50 transition-colors"
         >
-          <List size={22} className="text-green-400" />
+          <List size={20} className="text-green-400" />
           <span className="text-xs font-semibold text-gray-600">单词表</span>
+        </button>
+        <button
+          onClick={onShowStickers}
+          className="bg-white rounded-2xl py-3 px-1 shadow-sm flex flex-col items-center gap-1 hover:bg-purple-50 transition-colors"
+        >
+          <Sparkles size={20} className="text-purple-400" />
+          <span className="text-xs font-semibold text-gray-600">贴画册</span>
         </button>
       </div>
 

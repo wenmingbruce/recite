@@ -15,6 +15,7 @@ import { ResultCard } from './ResultCard';
 interface Props {
   config: GameConfig;
   onBack: () => void;
+  onStickerBook?: () => void;
 }
 
 function getGameWords(config: GameConfig): Word[] {
@@ -51,7 +52,7 @@ const MODE_LABEL: Record<string, string> = {
   whack: '打地鼠',
 };
 
-export function GameScreen({ config, onBack }: Props) {
+export function GameScreen({ config, onBack, onStickerBook }: Props) {
   const [words] = useState<Word[]>(() => shuffle(getGameWords(config)));
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -138,6 +139,7 @@ export function GameScreen({ config, onBack }: Props) {
         score={score}
         total={total}
         onBack={onBack}
+        onStickerBook={onStickerBook}
         onRetry={() => {
           setCurrentIndex(0);
           setScore(0);
