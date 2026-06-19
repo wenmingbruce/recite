@@ -195,7 +195,7 @@ export function GameScreen({ config, activeWords, onBack, onStickerBook }: Props
         <MatchGame words={batchWords} onComplete={handleBatchComplete} onSpeak={speak} />
       )}
       {config.mode === 'whack' && (
-        <WhackGame words={words} onComplete={handleBatchComplete} />
+        <WhackGame words={words} duration={config.whackDuration} onComplete={handleBatchComplete} />
       )}
     </div>
   );

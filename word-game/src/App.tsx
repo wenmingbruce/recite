@@ -16,10 +16,21 @@ export interface GameConfig {
   mode: GameMode;
   filter: GameFilter;
   unitKey?: string;
+  whackDuration?: number; // ms per mole
 }
 
-const GRADE_KEY = 'selected_grade';
-const SEM_KEY   = 'selected_semester';
+export const WHACK_SPEEDS = [
+  { label: '😴 超慢', ms: 8000 },
+  { label: '🐢 慢',   ms: 5000 },
+  { label: '😊 正常', ms: 3500 },
+  { label: '🐇 快',   ms: 2000 },
+  { label: '⚡ 挑战', ms: 1200 },
+] as const;
+export const DEFAULT_WHACK_DURATION = 3500;
+
+const GRADE_KEY    = 'selected_grade';
+const SEM_KEY      = 'selected_semester';
+const WHACK_DUR_KEY = 'whack_duration';
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('home');
@@ -32,6 +43,14 @@ export default function App() {
   const [selectedSemester, setSelectedSemester] = useState<1 | 2>(() =>
     (Number(localStorage.getItem(SEM_KEY) ?? DEFAULT_SEMESTER) as 1 | 2)
   );
+  const [whackDuration, setWhackDuration] = useState<number>(() =>
+    Number(localStorage.getItem(WHACK_DUR_KEY) ?? DEFAULT_WHACK_DURATION)
+  );
+
+  const changeWhackDuration = (ms: number) => {
+    setWhackDuration(ms);
+    localStorage.setItem(WHACK_DUR_KEY, String(ms));
+  };
 
   const activeBook = getWordBook(selectedGrade, selectedSemester);
   const activeWords: Word[] = activeBook?.words ?? [];
@@ -68,6 +87,8 @@ export default function App() {
           selectedGrade={selectedGrade}
           selectedSemester={selectedSemester}
           onChangeBook={changeBook}
+          whackDuration={whackDuration}
+          onChangeWhackDuration={changeWhackDuration}
           onStartGame={startGame}
           onShowWrong={() => navigate('wrong')}
           onShowStats={() => navigate('stats')}
@@ -77,7 +98,7 @@ export default function App() {
       )}
       {screen === 'game' && (
         <GameScreen
-          config={gameConfig}
+          config={{ ...gameConfig, whackDuration }}
           activeWords={activeWords}
           onBack={() => setScreen('home')}
           onStickerBook={() => navigate('stickers')}

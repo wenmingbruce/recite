@@ -4,12 +4,15 @@ import { getDueWords, getLearnedWords, getTodayStats } from '../utils/storage';
 import { TitleBadge } from './TitleBadge';
 import { WORD_BOOKS, type Word } from '../data/wordbooks';
 import type { GameConfig, GameMode, GameFilter } from '../App';
+import { WHACK_SPEEDS } from '../App';
 
 interface Props {
   activeWords: Word[];
   selectedGrade: number;
   selectedSemester: 1 | 2;
   onChangeBook: (grade: number, semester: 1 | 2) => void;
+  whackDuration: number;
+  onChangeWhackDuration: (ms: number) => void;
   onStartGame: (config: GameConfig) => void;
   onShowWrong: () => void;
   onShowStats: () => void;
@@ -29,6 +32,7 @@ const GRADE_LABELS = ['一', '二', '三', '四'];
 export function Home({
   activeWords,
   selectedGrade, selectedSemester, onChangeBook,
+  whackDuration, onChangeWhackDuration,
   onStartGame, onShowWrong, onShowStats, onShowWordList, onShowStickers,
 }: Props) {
   const [selectedMode, setSelectedMode] = useState<GameMode>('choice');
@@ -202,6 +206,31 @@ export function Home({
             ))}
           </div>
         </div>
+
+        {/* Whack speed picker — only shown for whack mode */}
+        {selectedMode === 'whack' && (
+          <div className="mb-4">
+            <p className="text-sm text-gray-500 mb-2">🔨 地鼠出现时长</p>
+            <div className="flex gap-1.5 flex-wrap">
+              {WHACK_SPEEDS.map(s => (
+                <button
+                  key={s.ms}
+                  onClick={() => onChangeWhackDuration(s.ms)}
+                  className={`flex-1 min-w-0 py-2 px-1 rounded-xl text-xs font-semibold transition-all ${
+                    whackDuration === s.ms
+                      ? 'bg-purple-500 text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-600 hover:bg-purple-100 hover:text-purple-700'
+                  }`}
+                >
+                  <div>{s.label}</div>
+                  <div className={`text-xs mt-0.5 ${whackDuration === s.ms ? 'opacity-70' : 'text-gray-400'}`}>
+                    {s.ms / 1000}秒
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Unit picker */}
         {selectedFilter === 'unit' && units.length > 0 && (

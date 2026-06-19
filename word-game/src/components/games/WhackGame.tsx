@@ -4,7 +4,7 @@ import { ALL_WORDS as WORDS } from '../../data/wordbooks';
 import { playCorrectHit, playWrongHit, playMoleAppear, playGameOver } from '../../utils/sound';
 
 const QUESTIONS = 10;
-const MOLE_DURATION = 2000; // ms — shorter for more tension
+const DEFAULT_MOLE_DURATION = 3500;
 const HIT_EFFECTS = ['💥', '⭐', '✨', '🌟', '💫', '🎯'];
 
 type HoleState = 'empty' | 'rising' | 'up' | 'hit-correct' | 'hit-wrong' | 'miss';
@@ -18,6 +18,7 @@ interface Hole {
 
 interface Props {
   words: Word[];
+  duration?: number; // ms each mole stays up
   onComplete: (results: { wordId: string; correct: boolean }[]) => void;
 }
 
@@ -36,7 +37,8 @@ function pickGameWords(words: Word[]): Word[] {
   return shuffle(pool).slice(0, Math.min(QUESTIONS, pool.length));
 }
 
-export function WhackGame({ words, onComplete }: Props) {
+export function WhackGame({ words, duration = DEFAULT_MOLE_DURATION, onComplete }: Props) {
+  const MOLE_DURATION = duration;
   const gameWords = useRef(pickGameWords(words));
   const total = gameWords.current.length;
   const results = useRef<{ wordId: string; correct: boolean }[]>([]);
