@@ -120,6 +120,15 @@
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
+/* Rainbow ring uses border rotation hack */
+@property --a {
+  syntax: '<angle>';
+  initial-value: 0turn;
+  inherits: false;
+}
+@keyframes rainbowSpin {
+  to { --a: 1turn; }
+}
 @keyframes floatSpark {
   0%   { transform: translateY(0) scale(0.9); opacity: 0.7; }
   100% { transform: translateY(-10px) scale(1.1); opacity: 1; }
