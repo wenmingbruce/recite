@@ -5,14 +5,21 @@ import { getPet, getPetStage } from '../utils/pet';
 import { PetDisplay } from './PetDisplay';
 import { TitleBadge } from './TitleBadge';
 import { WORD_BOOKS, type Word } from '../data/wordbooks';
-import type { GameConfig, GameMode, GameFilter } from '../App';
+import type { GameConfig, GameMode, GameFilter, Subject, ChineseCategory } from '../App';
 import { WHACK_SPEEDS } from '../App';
 
 interface Props {
   activeWords: Word[];
+  subject: Subject;
+  onChangeSubject: (s: Subject) => void;
   selectedGrade: number;
   selectedSemester: 1 | 2;
   onChangeBook: (grade: number, semester: 1 | 2) => void;
+  zhGrade: number;
+  zhSemester: 1 | 2;
+  zhCategory: ChineseCategory;
+  onChangeZhBook: (grade: number, semester: 1 | 2) => void;
+  onChangeZhCategory: (cat: ChineseCategory) => void;
   whackDuration: number;
   onChangeWhackDuration: (ms: number) => void;
   onStartGame: (config: GameConfig) => void;
@@ -34,7 +41,9 @@ const GRADE_LABELS = ['一', '二', '三', '四'];
 
 export function Home({
   activeWords,
+  subject, onChangeSubject,
   selectedGrade, selectedSemester, onChangeBook,
+  zhGrade, zhSemester, zhCategory, onChangeZhBook, onChangeZhCategory,
   whackDuration, onChangeWhackDuration,
   onStartGame, onShowWrong, onShowStats, onShowWordList, onShowStickers, onShowPet,
 }: Props) {
@@ -95,44 +104,117 @@ export function Home({
         <span className="text-gray-400 text-sm">›</span>
       </button>
 
+      {/* ── Subject tabs ── */}
+      <div className="bg-white rounded-2xl p-1.5 shadow-sm mb-4 flex gap-1">
+        {([
+          { id: 'english' as Subject, label: '🔤 英语', color: 'bg-blue-500' },
+          { id: 'chinese' as Subject, label: '📖 语文', color: 'bg-red-500' },
+        ]).map(s => (
+          <button
+            key={s.id}
+            onClick={() => onChangeSubject(s.id)}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              subject === s.id
+                ? `${s.color} text-white shadow-sm`
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
       {/* ── Word Book Selector ── */}
       <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-bold text-gray-700">📚 当前单词书</span>
-          <span className="text-xs text-purple-600 font-semibold bg-purple-50 px-2 py-0.5 rounded-full">
-            {activeWords.length} 个单词
+          <span className="text-sm font-bold text-gray-700">
+            {subject === 'english' ? '📚 英语单词书' : '📖 语文课本'}
+          </span>
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+            subject === 'english' ? 'text-purple-600 bg-purple-50' : 'text-red-600 bg-red-50'
+          }`}>
+            {activeWords.length} {subject === 'english' ? '个单词' : '个词条'}
           </span>
         </div>
-        {/* Grade rows */}
-        <div className="space-y-2">
-          {[1, 2, 3, 4].map(grade => (
-            <div key={grade} className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 w-14 shrink-0">{GRADE_LABELS[grade - 1]}年级</span>
-              {([1, 2] as const).map(sem => {
-                const book = WORD_BOOKS.find(b => b.grade === grade && b.semester === sem);
-                const isActive = selectedGrade === grade && selectedSemester === sem;
-                return (
-                  <button
-                    key={sem}
-                    onClick={() => { onChangeBook(grade, sem); setSelectedUnit(''); }}
-                    className={`flex-1 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                      isActive
-                        ? 'bg-purple-500 text-white shadow-sm'
-                        : 'bg-gray-100 text-gray-600 hover:bg-purple-100 hover:text-purple-700'
-                    }`}
-                  >
-                    {sem === 1 ? '上册' : '下册'}
-                    {book && (
-                      <span className={`ml-1 ${isActive ? 'opacity-70' : 'text-gray-400'}`}>
-                        ({book.words.length})
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+
+        {/* English grade/semester selector */}
+        {subject === 'english' && (
+          <div className="space-y-2">
+            {[1, 2, 3, 4].map(grade => (
+              <div key={grade} className="flex items-center gap-2">
+                <span className="text-xs text-gray-500 w-14 shrink-0">{GRADE_LABELS[grade - 1]}年级</span>
+                {([1, 2] as const).map(sem => {
+                  const book = WORD_BOOKS.find(b => b.grade === grade && b.semester === sem);
+                  const isActive = selectedGrade === grade && selectedSemester === sem;
+                  return (
+                    <button
+                      key={sem}
+                      onClick={() => { onChangeBook(grade, sem); setSelectedUnit(''); }}
+                      className={`flex-1 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                        isActive
+                          ? 'bg-blue-500 text-white shadow-sm'
+                          : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700'
+                      }`}
+                    >
+                      {sem === 1 ? '上册' : '下册'}
+                      {book && <span className={`ml-1 ${isActive ? 'opacity-70' : 'text-gray-400'}`}>({book.words.length})</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Chinese grade/semester selector + category filter */}
+        {subject === 'chinese' && (
+          <>
+            {/* Category filter */}
+            <div className="flex gap-2 mb-3">
+              {([
+                { id: 'all' as ChineseCategory,   label: '全部' },
+                { id: 'vocab' as ChineseCategory, label: '词语' },
+                { id: 'poem' as ChineseCategory,  label: '古诗' },
+              ]).map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => onChangeZhCategory(c.id)}
+                  className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    zhCategory === c.id
+                      ? 'bg-red-500 text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600'
+                  }`}
+                >
+                  {c.label}
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
+            {/* Grade/semester grid */}
+            <div className="space-y-2">
+              {[1, 2, 3, 4].map(grade => (
+                <div key={grade} className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 w-14 shrink-0">{GRADE_LABELS[grade - 1]}年级</span>
+                  {([1, 2] as const).map(sem => {
+                    const isActive = zhGrade === grade && zhSemester === sem;
+                    return (
+                      <button
+                        key={sem}
+                        onClick={() => { onChangeZhBook(grade, sem); setSelectedUnit(''); }}
+                        className={`flex-1 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                          isActive
+                            ? 'bg-red-500 text-white shadow-sm'
+                            : 'bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600'
+                        }`}
+                      >
+                        {sem === 1 ? '上册' : '下册'}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Title Badge */}
@@ -162,7 +244,7 @@ export function Home({
       {/* Progress bar */}
       <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
         <div className="flex justify-between text-sm mb-1.5">
-          <span className="text-gray-600 font-medium">本册进度</span>
+          <span className="text-gray-600 font-medium">{subject === 'chinese' ? '本册进度' : '本册进度'}</span>
           <span className="text-purple-600 font-bold">{progressPct}%</span>
         </div>
         <div className="h-3 bg-gray-100 rounded-full overflow-hidden">

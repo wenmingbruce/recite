@@ -8,6 +8,10 @@ import { StickerBook } from './components/StickerBook';
 import { PetRoom } from './components/PetRoom';
 import { startSession, endSession } from './utils/storage';
 import { getWordBook, DEFAULT_GRADE, DEFAULT_SEMESTER, type Word } from './data/wordbooks';
+import { getChineseBook, getVocabWords, getPoemWords } from './data/chinesebooks';
+
+export type Subject = 'english' | 'chinese';
+export type ChineseCategory = 'vocab' | 'poem' | 'all';
 
 export type Screen = 'home' | 'game' | 'wrong' | 'stats' | 'wordlist' | 'stickers' | 'pet';
 export type GameMode = 'choice' | 'spell' | 'match' | 'whack';
@@ -29,9 +33,13 @@ export const WHACK_SPEEDS = [
 ] as const;
 export const DEFAULT_WHACK_DURATION = 3500;
 
-const GRADE_KEY    = 'selected_grade';
-const SEM_KEY      = 'selected_semester';
-const WHACK_DUR_KEY = 'whack_duration';
+const GRADE_KEY      = 'selected_grade';
+const SEM_KEY        = 'selected_semester';
+const WHACK_DUR_KEY  = 'whack_duration';
+const SUBJECT_KEY    = 'selected_subject';
+const ZH_GRADE_KEY   = 'zh_selected_grade';
+const ZH_SEM_KEY     = 'zh_selected_semester';
+const ZH_CAT_KEY     = 'zh_selected_category';
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('home');
@@ -53,8 +61,45 @@ export default function App() {
     localStorage.setItem(WHACK_DUR_KEY, String(ms));
   };
 
+  // Subject state
+  const [subject, setSubject] = useState<Subject>(
+    () => (localStorage.getItem(SUBJECT_KEY) as Subject | null) ?? 'english'
+  );
+  const [zhGrade, setZhGrade] = useState<number>(
+    () => Number(localStorage.getItem(ZH_GRADE_KEY) ?? DEFAULT_GRADE)
+  );
+  const [zhSemester, setZhSemester] = useState<1|2>(
+    () => Number(localStorage.getItem(ZH_SEM_KEY) ?? DEFAULT_SEMESTER) as 1|2
+  );
+  const [zhCategory, setZhCategory] = useState<ChineseCategory>(
+    () => (localStorage.getItem(ZH_CAT_KEY) as ChineseCategory | null) ?? 'all'
+  );
+
+  const changeSubject = (s: Subject) => {
+    setSubject(s);
+    localStorage.setItem(SUBJECT_KEY, s);
+  };
+  const changeZhBook = (grade: number, sem: 1|2) => {
+    setZhGrade(grade); setZhSemester(sem);
+    localStorage.setItem(ZH_GRADE_KEY, String(grade));
+    localStorage.setItem(ZH_SEM_KEY, String(sem));
+  };
+  const changeZhCategory = (cat: ChineseCategory) => {
+    setZhCategory(cat);
+    localStorage.setItem(ZH_CAT_KEY, cat);
+  };
+
   const activeBook = getWordBook(selectedGrade, selectedSemester);
-  const activeWords: Word[] = activeBook?.words ?? [];
+  const activeEnglishWords: Word[] = activeBook?.words ?? [];
+
+  const zhBook = getChineseBook(zhGrade, zhSemester);
+  const zhAllWords = zhBook?.words ?? [];
+  const activeChineseWords: Word[] =
+    zhCategory === 'vocab' ? getVocabWords(zhAllWords) :
+    zhCategory === 'poem'  ? getPoemWords(zhAllWords)  :
+    zhAllWords;
+
+  const activeWords: Word[] = subject === 'english' ? activeEnglishWords : activeChineseWords;
 
   const changeBook = (grade: number, sem: 1 | 2) => {
     setSelectedGrade(grade);
@@ -85,9 +130,16 @@ export default function App() {
       {screen === 'home' && (
         <Home
           activeWords={activeWords}
+          subject={subject}
+          onChangeSubject={changeSubject}
           selectedGrade={selectedGrade}
           selectedSemester={selectedSemester}
           onChangeBook={changeBook}
+          zhGrade={zhGrade}
+          zhSemester={zhSemester}
+          zhCategory={zhCategory}
+          onChangeZhBook={changeZhBook}
+          onChangeZhCategory={changeZhCategory}
           whackDuration={whackDuration}
           onChangeWhackDuration={changeWhackDuration}
           onStartGame={startGame}
