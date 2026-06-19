@@ -13,39 +13,27 @@ export interface PetStage {
 export const PET_STAGES: PetStage[] = [
   {
     level: 0, name: '神秘之蛋', title: '🥚 神秘之蛋',
-    xpRequired: 0, xpToNext: 15,
+    xpRequired: 0, xpToNext: 100,
     desc: '一颗神秘的蛋，在等待被唤醒…',
-    ability: '用金块喂食让它孵化！',
+    ability: '用金块喂食让它孵化！（需要100金块）',
   },
   {
-    level: 1, name: '雪球宝宝', title: '🐾 雪球宝宝',
-    xpRequired: 15, xpToNext: 35,
-    desc: '圆滚滚软乎乎，超级可爱！',
-    ability: '初级萌力：每日额外+1金块',
+    level: 1, name: '魔法小猫', title: '🐱 魔法小猫',
+    xpRequired: 100, xpToNext: 100,
+    desc: '可爱的独角猫咪破蛋而出！圆滚滚超可爱！',
+    ability: '萌力加持：每日学习额外+3金块',
   },
   {
-    level: 2, name: '独角猫咪', title: '🦄 独角猫咪',
-    xpRequired: 50, xpToNext: 60,
-    desc: '长出了闪亮的小角，魔法满满！',
-    ability: '魔法之眼：答对连击额外奖励',
+    level: 2, name: '星光精灵', title: '✨ 星光精灵',
+    xpRequired: 200, xpToNext: 100,
+    desc: '星光绕身，魔力大增！翅膀也长出来啦！',
+    ability: '星光祝福：满分额外+10金块',
   },
   {
-    level: 3, name: '月光精灵', title: '✨ 月光精灵',
-    xpRequired: 110, xpToNext: 100,
-    desc: '翅膀展开，可以飞翔在月光下！',
-    ability: '月光祝福：满分额外+8金块',
-  },
-  {
-    level: 4, name: '彩虹守护', title: '🌈 彩虹守护',
-    xpRequired: 210, xpToNext: 180,
-    desc: '七彩光芒，守护每一个单词！',
-    ability: '彩虹加成：学习时长双倍统计',
-  },
-  {
-    level: 5, name: '神圣天使', title: '👑 神圣天使',
-    xpRequired: 390, xpToNext: null,
-    desc: '最终形态！传说中的守护天使！',
-    ability: '神圣守护：所有奖励翻倍！',
+    level: 3, name: '彩虹女王', title: '👑 彩虹女王',
+    xpRequired: 300, xpToNext: null,
+    desc: '最终传说形态！彩虹守护，无所不能！',
+    ability: '神圣守护：所有金块奖励翻倍！',
   },
 ];
 

@@ -186,17 +186,20 @@ export function PetRoom({ onBack }: Props) {
       {/* All stages preview */}
       <div className="bg-white rounded-2xl p-4 shadow-sm">
         <p className="font-bold text-gray-700 mb-3">成长路线</p>
-        <div className="flex justify-between items-end gap-1">
+        <div className="flex justify-between items-center gap-2">
           {PET_STAGES.map((s, i) => (
-            <div key={i} className={`flex-1 flex flex-col items-center gap-1 ${i > pet.level ? 'opacity-35 grayscale' : ''}`}>
-              <div className={`text-2xl ${i === pet.level ? 'animate-bounce-in' : ''}`}>
-                {['🥚','🐾','🦄','✨','🌈','👑'][i]}
+            <div key={i} className={`flex-1 flex flex-col items-center gap-1.5 ${i > pet.level ? 'opacity-30 grayscale' : ''}`}>
+              <div className={`text-3xl ${i === pet.level ? 'animate-pop' : ''}`}>
+                {['🥚','🐱','✨','👑'][i]}
               </div>
-              <div className={`text-xs text-center font-medium leading-tight ${i === pet.level ? 'text-purple-600' : 'text-gray-400'}`}>
-                {s.name.split('').slice(0, 3).join('')}
+              <div className={`text-xs text-center font-semibold leading-tight ${i === pet.level ? 'text-purple-600' : 'text-gray-400'}`}>
+                {s.name}
               </div>
+              {i < PET_STAGES.length - 1 && (
+                <div className="text-xs text-gray-300">100💛</div>
+              )}
               {i === pet.level && (
-                <div className="w-2 h-2 bg-purple-500 rounded-full" />
+                <div className="w-2.5 h-2.5 bg-purple-500 rounded-full shadow-sm" />
               )}
             </div>
           ))}
