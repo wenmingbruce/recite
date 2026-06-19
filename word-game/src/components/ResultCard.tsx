@@ -9,9 +9,11 @@ import { playLevelUp } from '../utils/sound';
 interface Props {
   score: number;
   total: number;
+  coinsEarned?: number;
   onBack: () => void;
   onRetry: () => void;
   onStickerBook?: () => void;
+  onPet?: () => void;
 }
 
 // ── Praise messages ────────────────────────────────────────────────────────
@@ -88,7 +90,7 @@ function StarBurst() {
 }
 
 // ── Main component ───────────────────────────────────────────────────────────
-export function ResultCard({ score, total, onBack, onRetry, onStickerBook }: Props) {
+export function ResultCard({ score, total, coinsEarned = 0, onBack, onRetry, onStickerBook, onPet }: Props) {
   const pct = total > 0 ? Math.round((score / total) * 100) : 0;
   const stars = pct >= 90 ? 3 : pct >= 60 ? 2 : 1;
   const [praise] = useState(() => getPraise(pct));
@@ -154,6 +156,15 @@ export function ResultCard({ score, total, onBack, onRetry, onStickerBook }: Pro
         </div>
       </div>
 
+      {/* Coins earned */}
+      {coinsEarned > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl px-6 py-3 mb-4 text-center animate-bounce-in" style={{ animationDelay: '0.25s' }}>
+          <p className="text-sm text-yellow-600">获得金块</p>
+          <p className="text-3xl font-extrabold text-yellow-500">💛 ×{coinsEarned}</p>
+          <p className="text-xs text-yellow-500 mt-0.5">去喂给宠物让它成长吧！</p>
+        </div>
+      )}
+
       {/* Sticker reveal */}
       <div
         className={`w-full max-w-sm mb-6 transition-all duration-500 ${
@@ -177,30 +188,35 @@ export function ResultCard({ score, total, onBack, onRetry, onStickerBook }: Pro
       </div>
 
       {/* Action buttons */}
-      <div className="flex gap-3 w-full max-w-sm">
+      <div className="grid grid-cols-2 gap-2 w-full max-w-sm mb-2">
         <button
           onClick={onBack}
-          className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-white text-gray-700 rounded-2xl font-semibold shadow-sm hover:bg-gray-50 transition-colors"
+          className="flex items-center justify-center gap-1.5 py-3 bg-white text-gray-700 rounded-2xl font-semibold shadow-sm hover:bg-gray-50 transition-colors"
         >
-          <Home size={18} />
-          首页
+          <Home size={16} />首页
         </button>
+        <button
+          onClick={onRetry}
+          className="flex items-center justify-center gap-1.5 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-bold shadow-md"
+        >
+          <RotateCcw size={16} />再来
+        </button>
+        {onPet && (
+          <button
+            onClick={onPet}
+            className="flex items-center justify-center gap-1.5 py-3 bg-yellow-50 text-yellow-700 rounded-2xl font-semibold shadow-sm hover:bg-yellow-100 transition-colors border border-yellow-200"
+          >
+            🐾 喂宠物
+          </button>
+        )}
         {onStickerBook && (
           <button
             onClick={onStickerBook}
-            className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-white text-purple-600 rounded-2xl font-semibold shadow-sm hover:bg-purple-50 transition-colors"
+            className="flex items-center justify-center gap-1.5 py-3 bg-white text-purple-600 rounded-2xl font-semibold shadow-sm hover:bg-purple-50 transition-colors"
           >
-            <BookOpen size={18} />
-            贴画册
+            <BookOpen size={16} />贴画册
           </button>
         )}
-        <button
-          onClick={onRetry}
-          className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-bold shadow-md hover:shadow-lg transition-all"
-        >
-          <RotateCcw size={18} />
-          再来
-        </button>
       </div>
     </div>
   );

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { BookOpen, BarChart2, AlertCircle, List, Zap, Brain, Sparkles } from 'lucide-react';
 import { getDueWords, getLearnedWords, getTodayStats } from '../utils/storage';
+import { getPet, getPetStage } from '../utils/pet';
+import { PetDisplay } from './PetDisplay';
 import { TitleBadge } from './TitleBadge';
 import { WORD_BOOKS, type Word } from '../data/wordbooks';
 import type { GameConfig, GameMode, GameFilter } from '../App';
@@ -18,6 +20,7 @@ interface Props {
   onShowStats: () => void;
   onShowWordList: () => void;
   onShowStickers: () => void;
+  onShowPet: () => void;
 }
 
 const MODES: { id: GameMode; label: string; icon: string; desc: string }[] = [
@@ -33,7 +36,7 @@ export function Home({
   activeWords,
   selectedGrade, selectedSemester, onChangeBook,
   whackDuration, onChangeWhackDuration,
-  onStartGame, onShowWrong, onShowStats, onShowWordList, onShowStickers,
+  onStartGame, onShowWrong, onShowStats, onShowWordList, onShowStickers, onShowPet,
 }: Props) {
   const [selectedMode, setSelectedMode] = useState<GameMode>('choice');
   const [selectedFilter, setSelectedFilter] = useState<GameFilter>('due');
@@ -43,6 +46,8 @@ export function Home({
   const dueWords = getDueWords(activeWords);
   const learnedWords = getLearnedWords(activeWords);
   const dueCount = dueWords.length;
+  const pet = getPet();
+  const petStage = getPetStage(pet.level);
   const progressPct = activeWords.length > 0
     ? Math.round((learnedWords.length / activeWords.length) * 100)
     : 0;
@@ -67,6 +72,28 @@ export function Home({
         <h1 className="text-3xl font-bold text-purple-700 mb-0.5">单词星球</h1>
         <p className="text-gray-400 text-sm">人教版小学英语</p>
       </div>
+
+      {/* ── Pet preview ── */}
+      <button
+        onClick={onShowPet}
+        className="w-full bg-gradient-to-r from-amber-50 to-yellow-50 border border-yellow-200 rounded-2xl p-3 shadow-sm mb-4 flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.98]"
+      >
+        <div className="shrink-0">
+          <PetDisplay level={pet.level} size={48} />
+        </div>
+        <div className="flex-1 text-left">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-gray-800 text-sm">{pet.name}</span>
+            <span className="text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full font-semibold">{petStage.name}</span>
+          </div>
+          <div className="flex items-center gap-1 mt-0.5">
+            <span className="text-lg">💛</span>
+            <span className="text-sm font-bold text-yellow-600">{pet.coins} 金块</span>
+            <span className="text-xs text-gray-400 ml-1">答题赚金块 → 喂给宠物成长</span>
+          </div>
+        </div>
+        <span className="text-gray-400 text-sm">›</span>
+      </button>
 
       {/* ── Word Book Selector ── */}
       <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
@@ -270,6 +297,7 @@ export function Home({
           { label: '统计',   icon: <BarChart2  size={20} className="text-blue-400"/>,     onClick: onShowStats,    hover: 'hover:bg-blue-50' },
           { label: '单词表', icon: <List       size={20} className="text-green-400"/>,    onClick: onShowWordList, hover: 'hover:bg-green-50' },
           { label: '贴画册', icon: <Sparkles   size={20} className="text-purple-400"/>,   onClick: onShowStickers, hover: 'hover:bg-purple-50' },
+          // pet handled separately above
         ].map(item => (
           <button
             key={item.label}

@@ -5,10 +5,11 @@ import { WrongNotes } from './components/WrongNotes';
 import { Statistics } from './components/Statistics';
 import { WordList } from './components/WordList';
 import { StickerBook } from './components/StickerBook';
+import { PetRoom } from './components/PetRoom';
 import { startSession, endSession } from './utils/storage';
 import { getWordBook, DEFAULT_GRADE, DEFAULT_SEMESTER, type Word } from './data/wordbooks';
 
-export type Screen = 'home' | 'game' | 'wrong' | 'stats' | 'wordlist' | 'stickers';
+export type Screen = 'home' | 'game' | 'wrong' | 'stats' | 'wordlist' | 'stickers' | 'pet';
 export type GameMode = 'choice' | 'spell' | 'match' | 'whack';
 export type GameFilter = 'due' | 'unit' | 'wrong';
 
@@ -94,6 +95,7 @@ export default function App() {
           onShowStats={() => navigate('stats')}
           onShowWordList={() => navigate('wordlist')}
           onShowStickers={() => navigate('stickers')}
+          onShowPet={() => navigate('pet')}
         />
       )}
       {screen === 'game' && (
@@ -102,6 +104,7 @@ export default function App() {
           activeWords={activeWords}
           onBack={() => setScreen('home')}
           onStickerBook={() => navigate('stickers')}
+          onPet={() => navigate('pet')}
         />
       )}
       {screen === 'wrong' && (
@@ -115,6 +118,9 @@ export default function App() {
       )}
       {screen === 'stickers' && (
         <StickerBook onBack={() => setScreen(prevScreen === 'stickers' ? 'home' : prevScreen)} />
+      )}
+      {screen === 'pet' && (
+        <PetRoom onBack={() => setScreen('home')} />
       )}
     </div>
   );

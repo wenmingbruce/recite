@@ -6,6 +6,7 @@ import {
   getDueWords, updateWordProgress,
   addWrongEntry, updateDailyStats, getUnresolvedWrong,
 } from '../utils/storage';
+import { awardCoins, calcCoins } from '../utils/pet';
 import { ChoiceGame } from './games/ChoiceGame';
 import { SpellGame } from './games/SpellGame';
 import { MatchGame } from './games/MatchGame';
@@ -17,6 +18,7 @@ interface Props {
   activeWords: Word[];
   onBack: () => void;
   onStickerBook?: () => void;
+  onPet?: () => void;
 }
 
 function getGameWords(config: GameConfig, activeWords: Word[]): Word[] {
@@ -51,13 +53,14 @@ const MODE_LABEL: Record<string, string> = {
   whack: '打地鼠',
 };
 
-export function GameScreen({ config, activeWords, onBack, onStickerBook }: Props) {
+export function GameScreen({ config, activeWords, onBack, onStickerBook, onPet }: Props) {
   const [words] = useState<Word[]>(() => shuffle(getGameWords(config, activeWords)));
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [total, setTotal] = useState(0);
   const [lastCorrect, setLastCorrect] = useState<boolean | null>(null);
   const [isFinished, setIsFinished] = useState(false);
+  const [coinsEarned, setCoinsEarned] = useState(0);
   const sessionStart = useRef(Date.now());
 
   const currentWord = words[currentIndex];
@@ -87,15 +90,20 @@ export function GameScreen({ config, activeWords, onBack, onStickerBook }: Props
     updateWordProgress(word.id, correct ? 4 : 1);
     if (!correct && wrongAnswer) addWrongEntry(word.id, wrongAnswer, word.meaning);
     updateDailyStats({ wordsReviewed: 1 });
-    if (correct) setScore(s => s + 1);
+    const newScore = correct ? score + 1 : score;
+    const newTotal = total + 1;
+    if (correct) setScore(newScore);
     setLastCorrect(correct);
-    setTotal(t => t + 1);
+    setTotal(newTotal);
 
     setTimeout(() => {
       setLastCorrect(null);
       if (currentIndex + 1 >= batchWords.length) {
         const minutes = Math.round((Date.now() - sessionStart.current) / 60000);
         if (minutes > 0) updateDailyStats({ studyMinutes: minutes });
+        const coins = calcCoins(newScore, newTotal);
+        awardCoins(coins);
+        setCoinsEarned(coins);
         setIsFinished(true);
       } else {
         setCurrentIndex(i => i + 1);
@@ -116,6 +124,9 @@ export function GameScreen({ config, activeWords, onBack, onStickerBook }: Props
     updateDailyStats({ wordsReviewed: results.length });
     const minutes = Math.round((Date.now() - sessionStart.current) / 60000);
     if (minutes > 0) updateDailyStats({ studyMinutes: minutes });
+    const coins = calcCoins(correctCount, results.length);
+    awardCoins(coins);
+    setCoinsEarned(coins);
     setIsFinished(true);
   }, [words, isWhack]);
 
@@ -137,12 +148,15 @@ export function GameScreen({ config, activeWords, onBack, onStickerBook }: Props
       <ResultCard
         score={score}
         total={total}
+        coinsEarned={coinsEarned}
         onBack={onBack}
         onStickerBook={onStickerBook}
+        onPet={onPet}
         onRetry={() => {
           setCurrentIndex(0);
           setScore(0);
           setTotal(0);
+          setCoinsEarned(0);
           setIsFinished(false);
           sessionStart.current = Date.now();
         }}

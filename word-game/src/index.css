@@ -92,3 +92,39 @@
 .animate-float-up {
   animation: floatUp 1s ease-out forwards;
 }
+
+/* ── Pet animations ────────────────────────────────────────────────────────── */
+@keyframes petBob {
+  0%, 100% { transform: translateY(0px) rotate(-1deg); }
+  50%       { transform: translateY(-8px) rotate(1deg); }
+}
+@keyframes petEat {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  30%       { transform: scale(1.12) rotate(-5deg); }
+  60%       { transform: scale(0.95) rotate(4deg); }
+}
+@keyframes eggWiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25%       { transform: rotate(-8deg); }
+  75%       { transform: rotate(8deg); }
+}
+@keyframes petGlow {
+  0%   { opacity: 0.6; transform: scale(0.95); }
+  100% { opacity: 1;   transform: scale(1.05); }
+}
+@keyframes wingFlap {
+  0%   { transform: rotate(-18deg) scaleY(0.95); }
+  100% { transform: rotate(-8deg)  scaleY(1.05); }
+}
+@keyframes spinRainbow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes floatSpark {
+  0%   { transform: translateY(0) scale(0.9); opacity: 0.7; }
+  100% { transform: translateY(-10px) scale(1.1); opacity: 1; }
+}
+@keyframes coinFloat {
+  0%   { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+}
